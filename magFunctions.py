@@ -3,6 +3,7 @@
 # Importing packages:
 # For fill_nan:
 from scipy import interpolate
+import numpy as np
 
 ############################################################################################################################### 
 
