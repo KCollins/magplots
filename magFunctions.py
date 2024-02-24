@@ -207,8 +207,8 @@ def magdf(
     if is_saved:
         fname = 'output/' +str(start) + '_' + '.csv'
         if os.path.exists(fname):
-            if(is_verbose): print('Looks like ' + fname + ' has already been generated.')
-            return 
+            if(is_verbose): print('Looks like ' + fname + ' has already been generated. Pulling data...')
+            return pd.read_csv(fname)
     UT = pd.date_range(start, end, freq ='S')   # preallocate time range
     full_df = pd.DataFrame(UT, columns=['UT'])   # preallocate dataframe
     full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
@@ -231,6 +231,7 @@ def magdf(
     full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
     full_df.drop(columns = ['UT_1']) # discard superfluous column
     full_df = full_df[full_df['Magnetometer'] != ''] # drop empty rows
+    full_df = full_df.drop(['UT_1'], axis=1) # drop extraneous columns
     if is_saved:
         if(is_verbose): print('Saving as a CSV.')
         full_df.to_csv(fname)
