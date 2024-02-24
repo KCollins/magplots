@@ -142,7 +142,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
     data['UT'] = data['UT'].to_pydatetime()
     
     if(data['MAGNETIC_NORTH_-_H'][1] == 999.9999):
-        print('WARNING: This data may not be available. Check your parameters and verify magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html .')
+        print("WARNING: Data for " + magname.upper() + " on " + str(start) + " may not be available.\n  Check your parameters and verify magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html.")
     # print(type(df))
     # return df
     return data
@@ -177,11 +177,11 @@ def magfetch(
         file = open("tgopw.txt", "r")
         tgopw = file.read()
         if(is_verbose): print('Found Tromsø Geophysical Observatory password.')
-        if(is_verbose): print('Collecting data for ' + magname + ' from TGO.')
+        if(is_verbose): print('Collecting data for ' + magname.upper() + ' from TGO.')
         if(end<start): print('End is after start... check inputs.')
         data = magfetchtgo(start, end, magname, tgopw = tgopw, resolution = resolution, is_verbose=is_verbose)
     else:
-        if(is_verbose): print('Collecting data for ' + magname + ' from CDAWeb.')
+        if(is_verbose): print('Collecting data for ' + magname.upper() + ' from CDAWeb.')
         data = cdas.get_data(
             'sp_phys',
             'THG_L2_MAG_'+ magname.upper(),
@@ -444,3 +444,61 @@ def magspect(
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
         return fig
+
+############################################################################################################################### 
+def wavepwr(station_id, 
+            parameter,         # Bx, By or Bz
+            start, 
+            end, 
+            f_lower = 2.5,        # frequency threshold in mHz 
+            f_upper = 3,     # frequency threshold in mHz
+            is_verbose = False
+           ):
+    """
+         Function to determine Pc5 (by default) wave power for a given magnetometer, parameter and time frame.
+
+        Arguments: 
+               station_id      : Station ID in lowercase, e.g., 'atu', 'pg4'
+               parameter        : 'Bx', 'By' or 'Bz'
+               start, end      : datetimes of interval
+               f_lower, f_upper : Range of frequencies of interest in mHz.
+               is_verbose      : Print details of calculation. False by default. 
+
+        Returns:
+               pwr        : Calculated wave power in range of interest. 
+    """
+    magname = station_id.lower()
+    d = {'Bx':'MAGNETIC_NORTH_-_H', 'By':'MAGNETIC_EAST_-_E','Bz':'VERTICAL_DOWN_-_Z'}
+    # print(magname)
+    try:
+        if(is_verbose): print('Checking wave power for magnetometer ' + magname.upper() + ' between ' + str(start) + ' and ' + str(end) + '.')
+        data = magfetch(start, end, magname)
+        x =data['UT']
+        y =data[d[parameter]]
+
+
+        y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
+        y = fill_nan(y)
+        y = y - np.nanmean(y)  # Detrend
+
+        dt = (x[1] - x[0]).seconds
+        fs = 1 / dt
+
+        datos = y
+
+        # nblock = 1024
+        # overlap = 128
+        nblock = 60
+        overlap = 30
+        win = hann(nblock, True)
+
+        # f, Pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
+        f, Pxxf = welch(datos, fs, window=win, return_onesided=True, detrend=False)
+        pwr = Pxxf[3]
+        if(is_verbose): print(Pxxf[((f>=f_lower/1000) & (f_upper<=3/1000))])
+        if(is_verbose): print(magname.upper() + ': The estimated power from ' + str(f_lower) + ' mHz to '+ str(f_upper) + ' mHz is ' + str(pwr) + ' nT/Hz^(1/2)')
+        return pwr
+    except Exception as e:
+        print(e)
+        if(is_verbose): print('Window length: ' + str(len(win)) +'\n Signal length: ' + str(len(y))) # usually this is the issue.
+        return 'Error'
