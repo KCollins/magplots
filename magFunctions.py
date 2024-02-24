@@ -239,3 +239,101 @@ def magdf(
     return full_df 
 
 ############################################################################################################################### 
+
+def magfig(
+    parameter = 'Bx',
+    start = datetime.datetime(2016, 1, 24, 0, 0, 0), 
+    end = datetime.datetime(2016, 1, 25, 0, 0, 0), 
+    maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
+    maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
+    is_displayed = False,
+    is_saved = False, 
+    is_verbose = False,
+    events=None, event_fontdict = {'size':20,'weight':'bold'}
+):
+    """
+    MAGFIG
+        Function to create a stackplot for a given set of conjugate magnetometers over a given length of time. 
+
+        Arguments:
+            parameter    : The parameter of interest - Bx, By, or Bz. North/South, East/West, and vertical, respectively.
+            start, end   : datetimes of the start and end of plots
+            maglist_a    : List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+            maglist_b    : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+            is_displayed : Boolean for whether resulting figure is displayed inline. False by default.
+            is_saved     : Boolean for whether resulting figure is saved to /output directory.
+            events       : List of datetimes for events marked on figure. Empty by default.
+
+        Returns:
+            
+    """
+    
+    
+    # Magnetometer parameter dict so that we don't have to type the full string: 
+    d = {'Bx':'MAGNETIC_NORTH_-_H', 'By':'MAGNETIC_EAST_-_E','Bz':'VERTICAL_DOWN_-_Z'}
+    if is_saved:
+        fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
+        if os.path.exists(fname):
+            print('Looks like ' + fname + ' has already been generated.')
+            return 
+            # raise Exception('This file has already been generated.')
+    fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25), constrained_layout=True)
+    print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
+    for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
+        print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
+        try:             
+            data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose) 
+            x =data['UT']
+            y =data[d[parameter]]
+            y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
+            axs[idx].plot(x,y)#x, y)
+            axs[idx].set(xlabel='Time', ylabel=magname.upper())
+
+            if events is not None:
+                # print('Plotting events...')
+                trans       = mpl.transforms.blended_transform_factory(axs[idx].transData,axs[idx].transAxes)
+                for event in events:
+                    evt_dtime   = event.get('datetime')
+                    evt_label   = event.get('label')
+                    evt_color   = event.get('color','0.4')
+
+                    axs[idx].axvline(evt_dtime,lw=1,ls='--',color=evt_color)
+                    if evt_label is not None:
+                        axs[idx].text(evt_dtime,0.01,evt_label,transform=trans,
+                                rotation=90,fontdict=event_fontdict,color=evt_color,
+                                va='bottom',ha='right')
+
+
+            try: 
+                magname = maglist_b[idx]
+                ax2 = axs[idx].twinx()
+                print('Plotting data for Antarctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
+                data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose) 
+                data['UT'] = pd.to_datetime(data['UT'])#, unit='s')
+                x =data['UT']
+                y =data[d[parameter]]
+
+                color = 'tab:red'
+                # ax2.set_ylabel('Y2-axis', color = color)
+                # ax2.plot(y, dataset_2, color = color)
+                # ax2.tick_params(axis ='y', labelcolor = color)
+                y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
+                ax2.plot(x,-y, color=color)#x, y)
+                ax2.set_ylabel(magname.upper(), color = color)
+                ax2.tick_params(axis ='y', labelcolor = color)
+            except Exception as e:
+                print(e)
+                continue
+        except Exception as e:
+            print(e)
+            continue
+    fig.suptitle(str(start) + ' ' +  str(parameter), fontsize=30)    # Title the plot...
+    if is_saved:
+        print("Saving figure. " + fname)
+        # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
+        fig.savefig(fname, dpi='figure', pad_inches=0.3)
+    if is_displayed:
+        return fig # TODO: Figure out how to suppress output here
+        
+
+###############################################################################################################################  
