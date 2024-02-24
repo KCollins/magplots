@@ -19,6 +19,19 @@ import os
 import os.path
 from os import path
 
+# For power plots:
+import matplotlib.dates as mdates
+from matplotlib.dates import DateFormatter
+from scipy import signal
+from scipy.fft import fft
+from scipy.signal import butter, filtfilt, stft, spectrogram
+import datetime as dt
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import welch, hann
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 ############################################################################################################################### 
 
 # #  FILL_NAN: Function to eliminate NaN values from a 1D numpy array.
@@ -337,3 +350,93 @@ def magfig(
         
 
 ###############################################################################################################################  
+
+def magspect(
+    parameter='Bx',
+    start=datetime.datetime(2016, 1, 24, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
+    maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
+    is_displayed=False,
+    is_saved=True,
+    is_verbose=False,
+    events=None,
+    event_fontdict={'size': 20, 'weight': 'bold'},
+    myFmt=mdates.DateFormatter('%H:%M')
+):
+    """
+    Function to create power plots for conjugate magnetometers.
+
+    Arguments:
+        parameter: The parameter of interest - Bx, By, or Bz. North/South, East/West, and vertical, respectively.
+        start, end: datetimes of the start and end of plots
+        maglist_a: List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+        maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+        is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
+        is_saved: Boolean for whether resulting figure is saved to /output directory.
+        events: List of datetimes for events marked on figure. Empty by default.
+        event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
+        myFmt: Date formatter. By default: mdates.DateFormatter('%H:%M')
+
+    Returns:
+        Figure of stacked plots for date in question, with events marked.
+    """
+    d = {'Bx': 'MAGNETIC_NORTH_-_H', 'By': 'MAGNETIC_EAST_-_E', 'Bz': 'VERTICAL_DOWN_-_Z'}
+    if is_saved:
+        fname = 'output/' + str(start) + '_' + str(parameter) + '.png'
+        if os.path.exists(fname):
+            print('Looks like ' + fname + ' has already been generated.')
+            return
+
+    fig, axs = plt.subplots(len(maglist_a), 2, figsize=(25, 25), constrained_layout=True)
+    print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
+
+    for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
+        for idx, magname in enumerate(maglist):
+            print('Plotting data for ' + side + ' magnetometer #' + str(idx + 1) + ': ' + magname.upper())
+
+            try:
+                data = magfetch(start, end, magname, is_verbose=is_verbose)
+                x = data['UT']
+                y = data[d[parameter]]
+                y = reject_outliers(y)
+                df = pd.DataFrame(y, x)
+                df = df.interpolate('linear')
+                y = df[0].values
+
+                xlim = [start, end]
+
+                f, t, Zxx = stft(y - np.mean(y), fs=1, nperseg=1800, noverlap=1200)
+                dt_list = [start + datetime.timedelta(seconds=ii) for ii in t]
+
+                axs[idx, sideidx].grid(False)
+                cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5)
+                axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
+
+                axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper())
+
+                if events is not None:
+                    trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
+                                                                     axs[idx, sideidx].transAxes)
+                    for event in events:
+                        evt_dtime = event.get('datetime')
+                        evt_label = event.get('label')
+                        evt_color = event.get('color', '0.4')
+
+                        axs[idx, sideidx].axvline(evt_dtime, lw=1, ls='--', color=evt_color)
+                        if evt_label is not None:
+                            axs[idx, sideidx].text(evt_dtime, 0.01, evt_label, transform=trans,
+                                                   rotation=90, fontdict=event_fontdict, color=evt_color,
+                                                   va='bottom', ha='right')
+
+            except Exception as e:
+                print(e)
+                continue
+
+    fig.suptitle(str(start) + ' ' + str(parameter), fontsize=30)  # Title the plot...
+    if is_saved:
+        fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
+        print("Saving figure. " + fname)
+        fig.savefig(fname, dpi='figure', pad_inches=0.3)
+    if is_displayed:
+        return fig
