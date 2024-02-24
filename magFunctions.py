@@ -88,7 +88,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
 
 ############################################################################################################################### 
 
-def magfetchtgo(start, end, magname, tgopw = '', resolution = '1sec'):
+def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbose=False):
     """
     Pulls data from a RESTful API with a link based on the date.
 
@@ -98,6 +98,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '1sec'):
         magname (str): The name of the magnetometer station.
         tgopw (str): Password for Tromsø Geophysical Observatory.
         resolution (str): String for data resolution; e.g., '10sec'; default '1sec'
+        is_verbose   : Boolean for whether debugging text is printed.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame containing the fetched data.
@@ -111,7 +112,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '1sec'):
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
         url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={magname}4d&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
-
+        if(is_verbose): print(url)
         # Fetch the data for the current day
         foo = pd.read_csv(url, skiprows = 6, delim_whitespace=True, usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
@@ -139,6 +140,9 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '1sec'):
 
     # Convert 'UT' column to datetime objects
     data['UT'] = data['UT'].to_pydatetime()
+    
+    if(data['MAGNETIC_NORTH_-_H'][1] == 999.9999):
+        print('WARNING: This data may not be available. Check your parameters and verify magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html .')
     # print(type(df))
     # return df
     return data
@@ -152,7 +156,7 @@ def magfetch(
     magname = 'atu', 
     is_verbose = False, 
     tgopw = '',
-    resolution = '1sec'
+    resolution = '10sec'
 ):
     """
     MAGFETCH 
@@ -175,7 +179,7 @@ def magfetch(
         if(is_verbose): print('Found Tromsø Geophysical Observatory password.')
         if(is_verbose): print('Collecting data for ' + magname + ' from TGO.')
         if(end<start): print('End is after start... check inputs.')
-        data = magfetchtgo(start, end, magname, tgopw = tgopw, resolution = resolution)
+        data = magfetchtgo(start, end, magname, tgopw = tgopw, resolution = resolution, is_verbose=is_verbose)
     else:
         if(is_verbose): print('Collecting data for ' + magname + ' from CDAWeb.')
         data = cdas.get_data(
