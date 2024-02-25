@@ -508,181 +508,6 @@ def wavepwr(station_id,
     
     
 ############################################################################################################################### 
-
-# def wavefig(
-#     stations = '', # dataframe 
-#     parameter = 'Bx',
-#     start = datetime.datetime(2016, 1, 24, 0, 0, 0), 
-#     end = datetime.datetime(2016, 1, 25, 0, 0, 0), 
-#     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
-#     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
-#     f_lower = 2.5,        # frequency threshold in mHz 
-#     f_upper = 3,     # frequency threshold in mHz
-#     is_maglist_only = True, 
-#     is_displayed = True,
-#     is_saved = False, 
-#     is_data_saved = False,
-#     is_verbose = False
-# ):
-#     """
-#     WAVEFIG 
-#         Function to create wave power plot for a given set of magnetometers. 
-
-#         Arguments:
-#             stations          : Dataframe of stations with columns IAGA, AACGMLAT, AACGMLON. If left empty, will pull from local file stations.csv.
-#             parameter         : The parameter of interest - Bx, By, or Bz. North/South, East/West, and vertical, respectively.
-#             start, end        : datetimes of the start and end of plots
-#             maglist_a         : List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-#             maglist_b         : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-#             f_lower, f_upper  : Range of frequencies of interest in mHz.
-#             is_maglist_only   : Boolean for whether only maglist_a and maglist_b stations are included from the complete station list. 
-#             is_displayed      : Boolean for whether resulting figure is displayed inline. False by default.
-#             is_saved          : Boolean for whether resulting figure is saved to /output directory.
-#             is_data_saved     : Boolean for whether dataframe of wave power calculation resusts is saved to /output directory.
-#             is_verbose        : Boolean for whether debugging text is printed.
-
-#         Returns:
-#             Figure of stacked plots for date in question, with events marked.
-#     """
-#     if(stations==""):
-#         if(is_verbose): print('Loading station list from local file stations.csv...')
-#         stations = pd.read_csv('stations.csv')
-#     if(is_maglist_only):
-#         if(is_verbose): print('Culling to only stations listed in maglist_a and maglist_b.')
-#         stations = stations[stations.IAGA.isin([item.upper() for item in maglist_a + maglist_b])] # Plot only the polar stations
-#         if(is_verbose): print(stations.IAGA)
-#     stations['WAVEPWR'] = stations.apply(lambda row : wavepwr(row['IAGA'], parameter = parameter, start = start, end = end, f_lower = f_lower, f_upper = f_upper, is_verbose = is_verbose), axis = 1)#wavepwr(stations['IAGA'])
-#     stations['HEMISPHERE'] = np.sign(stations.AACGMLAT)
-#     stations.HEMISPHERE = stations['HEMISPHERE'].map({1:'Arctic', -1:'Antarctic', 0:'Error'})
-#     stations['ABSLAT'] = abs(stations.AACGMLAT)
-#     px.scatter(stations.WAVEPWR, abs(stations.AACGMLAT))
-#     stations = stations.sort_values('ABSLAT')
-    
-#     # Create figure with secondary y-axis
-#     fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-#     x = stations.query("HEMISPHERE == 'Antarctic'")['ABSLAT'].to_list()
-#     y = stations.query("HEMISPHERE == 'Antarctic'")['WAVEPWR'].to_list()
-#     labels = stations.query("HEMISPHERE == 'Antarctic'")['IAGA'].to_list()
-
-#     # Add traces
-#     fig.add_trace(
-#         go.Scatter(x= x,y = y, text = labels, name="Antarctic"),
-#         secondary_y=False,
-#     )
-
-#     x = stations.query("HEMISPHERE == 'Arctic'")['ABSLAT'].to_list()
-#     y = stations.query("HEMISPHERE == 'Arctic'")['WAVEPWR'].to_list()
-#     labels = stations.query("HEMISPHERE == 'Arctic'")['IAGA'].to_list()
-
-#     fig.add_trace(
-#         go.Scatter(x=x, y=y, text = labels, name="Arctic", 
-#                    # line_shape = 'spline'
-#                   ),
-#         secondary_y=True,
-#     )
-
-#     # Add figure title
-#     fig.update_layout(
-#         title_text=str(parameter) + " Wave Power: " + str(start) + " to " + str(end)
-#     )
-
-#     # Set x-axis title
-#     fig.update_xaxes(title_text="Latitude")
-
-#     # Set y-axes titles
-#     fig.update_yaxes(title_text="<b>antarctic</b> wave power", secondary_y=False)
-#     fig.update_yaxes(title_text="<b>arctic</b> wave power", secondary_y=True)
-    
-#     if(is_saved): 
-#         fname = 'output/WavePower_' +str(start) + '_to_' + str(end) + '_' +  str(parameter) + '.png'
-#         if(is_verbose): print("Saving figure. " + fname)
-#         # fig.savefig(fname, dpi='figure', pad_inches=0.3)
-#         fig.write_image(fname)
-#     if(is_data_saved): 
-#         try:
-#             if(is_verbose): print("Saving data.")
-#             stations = stations.set_index("IAGA")
-#             if(is_verbose): print('Composing power table...')
-#             df_pwr = stations[[ "WAVEPWR"]].transpose().reset_index(drop = True)
-
-#             # Calculate basic statistics:
-#             if(is_verbose): print('Separating data by hemisphere....')
-#             arctic_pwr = stations.query("HEMISPHERE == 'Arctic'")['WAVEPWR']
-#             antarctic_pwr = stations.query("HEMISPHERE == 'Antarctic'")['WAVEPWR']
-            
-#             # Process each list of values and store the results in a dictionary
-#             data = {}
-#             if(is_verbose): print('Calculating statistics....')
-#             for data_list, label in zip([arctic_pwr, antarctic_pwr], ['Arctic', 'Antarctic']):
-#                 if(is_verbose): print('Converting data to numeric type...')
-#                 numeric_data = [float(x) for x in data_list.to_list() if x != 'Error']
-#                 if(is_verbose): print('Finding maximum...')
-#                 maximum = np.max(numeric_data)
-#                 if(is_verbose): print('Finding mean...')
-#                 mean = np.mean(numeric_data)
-#                 if(is_verbose): print('Finding standard deviation...')
-#                 standard_deviation = np.std(numeric_data)
-#                 if(is_verbose): print('Finding coefficient of variation...')
-#                 coefficient_of_variation = standard_deviation / mean * 100
-#                 # stations = stations.reset_index()
-#                 # maxiaga = stations[stations['WAVEPWR'] ==max(numeric_data)]['IAGA']
-#                 maxgeolon = stations[stations['WAVEPWR'] ==max(numeric_data)]['GEOLON'][0]
-#                 maxgeolat = stations[stations['WAVEPWR'] ==max(numeric_data)]['GEOLAT'][0]
-#                 maxaacgmlon = stations[stations['WAVEPWR'] ==max(numeric_data)]['AACGMLON'][0]
-#                 maxaacgmlat = stations[stations['WAVEPWR'] ==max(numeric_data)]['AACGMLAT'][0]
-                
-                    
-#                 data[label] = {
-#                     # 'Maximum measured at ': maxiaga,
-#                     'Maximum': maximum,
-#                     'Mean': mean,
-#                     'Standard Deviation': standard_deviation,
-#                     'Coefficient of Variation': coefficient_of_variation,
-#                     'Maximum GEOLON' : maxgeolon,
-#                     'Maximum GEOLAT' : maxgeolat,
-#                     'Maximum AACGMLON' : maxaacgmlon,
-#                     'Maximum AACGMLAT': maxaacgmlat
-#                 }
-
-#             # Create a DataFrame from the dictionary
-#             df_stat = pd.DataFrame(data).T
-#             df_stat = df_stat.stack().to_frame().T
-#             df_stat.columns = [' '.join(col).strip() for col in df_stat.columns]
-
-#             # create dataframe with our data pedigree: start and end times, lower and upper bounds
-#             if(is_verbose): print('Labeling data.')
-#             d = {
-#                 'Parameter' : parameter, 
-#                 'Start': start,
-#                 'End': end,
-#                 'Freq Lower Bound (mHz)': f_lower,
-#                 'Freq Upper Bound (mHz)': f_upper
-#             }
-#             df_pedigree = pd.DataFrame(d, index=range(1))
-
-#              # consolidate into dataframe:
-#             # Print the DataFrame
-#             df_saved = pd.concat([df_pedigree, df_pwr, df_stat], axis=1)
-#             df_saved
-
-#             # Append the DataFrame to an existing CSV file
-#             fname = "output/wavepwrdata.csv"
-#             is_new = not(path.exists(fname)) # boolean for whether to include header or not..
-#             df_saved.to_csv(fname, mode='a', index=False, header=is_new)
-#             if(is_verbose): print('Data saved!')
-#         except Exception as e:
-#             print('Ran into trouble!')
-#             print(e)
-        
-        
-#         # fig.savefig(fname, dpi='figure', pad_inches=0.3)
-#         # stations.to_csv(fname, index=True)
-#     if is_displayed:
-#         # fig.show()
-#         return fig 
-#     return stations
-
 def wavefig(
     stations="",  # dataframe
     parameter="Bx",
@@ -835,7 +660,9 @@ def magall(
     is_verbose=False,
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
-    myFmt=mdates.DateFormatter('%H:%M')
+    myFmt=mdates.DateFormatter('%H:%M'), 
+    stations = "", 
+    is_maglist_only = True
 ):
     """
     Function to create all plots for conjugate magnetometers in a given timespan. Generates plots for all parameters: 
@@ -851,6 +678,9 @@ def magall(
         events: List of datetimes for events marked on figure. Empty by default.
         event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
         myFmt: Date formatter. By default: mdates.DateFormatter('%H:%M')
+        stations: Table of station coordinates. (Type `help(wavefig)` for more information.)
+        is_maglist_only  : Boolean for whether only maglist_a and maglist_b stations
+                           are included from the complete station list.
 
     Returns:
         Saves all files to \output directory.
@@ -858,8 +688,11 @@ def magall(
     for parameter in ['Bx', 'By', 'Bz']:
         if(is_verbose): print('Computing plots for parameter ' + parameter + '.')
         if(is_verbose): print('Saving dataframe.')
-        magdf(start = start, end = end, is_verbose = is_verbose)
-        # magfig(parameter=parameter, start=start, end=end, mag
-        # magspect
-        # wavefig
+        magdf(start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_saved = is_saved, is_verbose = is_verbose)
+        if(is_verbose): print('Saving time-domain plot.')
+        magfig(parameter=parameter, start=start, end=end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, events = events)
+        if(is_verbose): print('Saving spectrogram plot.')
+        magspect(parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, events = events, event_fontdict = event_fontdict, myFmt = myFmt)
+        if(is_verbose): print('Generating wave power plot.')
+        wavefig(stations = stations, parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, f_lower = f_lower, f_upper = f_upper, is_maglist_only = is_maglist_only,  is_displayed = is_displayed, is_saved = is_saved, is_verbose = is_verbose)
                       
