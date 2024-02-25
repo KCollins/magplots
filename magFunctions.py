@@ -151,48 +151,58 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
     return data
 
 ############################################################################################################################### 
-
-
 def magfetch(
-    start = datetime.datetime(2016, 1, 24, 0, 0, 0), 
-    end = datetime.datetime(2016, 1, 25, 0, 0, 0), 
-    magname = 'atu', 
-    is_verbose = False, 
-    tgopw = '',
-    resolution = '10sec'
+    start=datetime.datetime(2016, 1, 24, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    magname="atu",
+    is_verbose=False,
+    tgopw="",
+    resolution="10sec",
 ):
     """
-    MAGFETCH 
-        Function to fetch data for a given magnetometer. Pulls from ai.cdas or DTU.
+    MAGFETCH
 
-        Arguments:
-            start, end   : datetimes of the start and end of sampled data range.
-            magname      : IAGA ID for magnetometer being sampled. e.g.: 'upn'
-            is_verbose   : Boolean for whether debugging text is printed.
-            tgopw        : Password for Tromsø Geophysical Observatory
-            resolution   : Data resolution for TGO data.
+    Function to fetch data for a given magnetometer. Pulls from ai.cdas or Tromsø Geophysical Observatory.
 
-        Returns:
-            df           : pandas dataframe with columns ['UT', 'MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E', 'VERTICAL_DOWN_-_Z']
+    Arguments:
+        start, end  : datetimes of the start and end of sampled data range.
+        magname     : IAGA ID for magnetometer being sampled. e.g.: 'upn'
+        is_verbose  : Boolean for whether debugging text is printed.
+        tgopw       : Password for Tromsø Geophysical Observatory
+        resolution  : Data resolution for TGO data.
+
+    Returns:
+        df      : pandas dataframe with columns ['UT', 'MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E', 'VERTICAL_DOWN_-_Z']
     """
-    if(magname in ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']): # northern mags of interest for which we want to pull higher cadence data from TGO.
-        # Pull password for TGO from local .txt file:
-        file = open("tgopw.txt", "r")
-        tgopw = file.read()
-        if(is_verbose): print('Found Tromsø Geophysical Observatory password.')
-        if(is_verbose): print('Collecting data for ' + magname.upper() + ' from TGO.')
-        if(end<start): print('End is after start... check inputs.')
-        data = magfetchtgo(start, end, magname, tgopw = tgopw, resolution = resolution, is_verbose=is_verbose)
-    else:
-        if(is_verbose): print('Collecting data for ' + magname.upper() + ' from CDAWeb.')
+
+    if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # Northern mags for TGO data
+        try:
+            with open("tgopw.txt", "r") as file:
+                tgopw = file.read().strip()
+            if is_verbose:
+                print("Found Tromsø Geophysical Observatory password.")
+        except FileNotFoundError:
+            if is_verbose:
+                print("tgopw.txt not found. Checking CDAWeb...")
+            tgopw = ""  # Set to empty string for CDAWeb
+
+    if tgopw:  # Use TGO data if password found or provided
+        if is_verbose:
+            print("Collecting data for", magname.upper(), "from TGO.")
+        data = magfetchtgo(start, end, magname, tgopw=tgopw, resolution=resolution, is_verbose=is_verbose)
+    else:  # Use CDAWeb
+        if is_verbose:
+            print("Collecting data for", magname.upper(), "from CDAWeb.")
         data = cdas.get_data(
-            'sp_phys',
-            'THG_L2_MAG_'+ magname.upper(),
+            "sp_phys",
+            "THG_L2_MAG_" + magname.upper(),
             start,
             end,
-            ['thg_mag_'+ magname]
+            ["thg_mag_" + magname],
         )
-    if(is_verbose): print('Data for ' + magname.upper() + ' collected: ' + str(len(data['UT'])) + ' samples.')
+
+    if is_verbose:
+        print("Data for", magname.upper(), "collected:", len(data["UT"]), "samples.")
     return data
 
 ############################################################################################################################### 
