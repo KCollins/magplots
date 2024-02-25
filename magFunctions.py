@@ -539,25 +539,25 @@ def wavefig(
     Function to create wave power plot for a given set of magnetometers.
 
     Arguments:
-        stations     : Dataframe of stations with columns IAGA, AACGMLAT, AACGMLON.
-                       If left empty, will pull from local file stations.csv.
-        parameter     : The parameter of interest - Bx, By, or Bz. North/South,
-                       East/West, and vertical, respectively.
-        start, end    : datetimes of the start and end of plots
-        maglist_a     : List of Arctic magnetometers. Default:
-                       ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-        maglist_b     : Corresponding list of Antarctic magnetometers. Default:
-                       ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-        f_lower, f_upper : Range of frequencies of interest in mHz.
-        is_maglist_only  : Boolean for whether only maglist_a and maglist_b stations
-                           are included from the complete station list.
-        is_displayed   : Boolean for whether resulting figure is displayed inline.
-                       False by default.
-        is_saved     : Boolean for whether resulting figure is saved to /output
-                       directory.
-        is_data_saved   : Boolean for whether dataframe of wave power calculation
-                           resusts is saved to /output directory.
-        is_verbose    : Boolean for whether debugging text is printed.
+        stations  : Dataframe of stations with columns IAGA, AACGMLAT, AACGMLON.
+                    If left empty, will pull from local file stations.csv.
+        parameter  : The parameter of interest - Bx, By, or Bz. North/South,
+                    East/West, and vertical, respectively.
+        start, end  : datetimes of the start and end of plots
+        maglist_a  : List of Arctic magnetometers. Default:
+                    ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+        maglist_b  : Corresponding list of Antarctic magnetometers. Default:
+                    ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+        f_lower, f_upper : Range of frequencies of interest in mHz.
+        is_maglist_only : Boolean for whether only maglist_a and maglist_b stations
+                    are included from the complete station list.
+        is_displayed  : Boolean for whether resulting figure is displayed inline.
+                    False by default.
+        is_saved  : Boolean for whether resulting figure is saved to /output
+                    directory.
+        is_data_saved  : Boolean for whether dataframe of wave power calculation
+                    resusts is saved to /output directory.
+        is_verbose  : Boolean for whether debugging text is printed.
 
     Returns:
         Figure of stacked plots for date in question, with events marked.
@@ -593,30 +593,55 @@ def wavefig(
     stations.HEMISPHERE = stations["HEMISPHERE"].map(
         {1: "Arctic", -1: "Antarctic", 0: "Error"}
     )
-    stations["ABSLAT"] = abs(stations.AACGMLAT)
 
+    stations["ABSLAT"] = abs(stations.AACGMLAT)
+    
     # Create figure
     fig, ax = plt.subplots(figsize=(12, 6))
+
 
     # Plot both Arctic and Antarctic stations on the same plot
     for hemisphere, color in zip(["Arctic", "Antarctic"], ["red", "blue"]):
         stations_filtered = stations[stations["HEMISPHERE"] == hemisphere]
-        stations_filtered = stations_filtered.sort_values('ABSLAT')
+        stations_filtered = stations_filtered.sort_values("ABSLAT")
 
+        # Use primary y-axis for Arctic stations
+        if hemisphere == "Arctic":
+            ax.plot(
+                stations_filtered["ABSLAT"],
+                stations_filtered["WAVEPWR"],
+                label=hemisphere,
+                color=color,
+                marker="o",
+                linestyle="-",
+            )
+            ax.set_ylabel("Wave Power (Arctic)", color=color)
+            ax.tick_params(axis="y", labelcolor=color)
+        # Create secondary y-axis for Antarctic stations
+        else:
+            ax2 = ax.twinx()
+            ax2.plot(
+                stations_filtered["ABSLAT"],
+                stations_filtered["WAVEPWR"],
+                label=hemisphere,
+                color=color,
+                marker="o",
+                linestyle="-",
+            )
+
+            ax2.set_ylabel("Wave Power (Antarctic)", color=color)
+            ax2.tick_params(axis="y", labelcolor=color)
+
+        # Annotate each point with station label
         for i in range(len(stations_filtered)):
             x = stations_filtered.iloc[i]["ABSLAT"]
             y = stations_filtered.iloc[i]["WAVEPWR"]
             label = stations_filtered.iloc[i]["IAGA"]
-
-            ax.plot(
-                x,
-                y,
-                label=hemisphere,
-                color=color,
-                marker="o",
-            )
-
-            ax.annotate(
+            if (stations_filtered.iloc[i]["HEMISPHERE"] == "Arctic"):
+                my_axis = ax
+            else:
+                my_axis = ax2
+            my_axis.annotate(
                 label,
                 (x, y),
                 xytext=(0, 5),  # Adjust vertical offset as needed
@@ -627,19 +652,6 @@ def wavefig(
                 color=color,  # Match label color to line color
             )
 
-        
-        x = stations_filtered["ABSLAT"].to_list()
-        y = stations_filtered["WAVEPWR"].to_list()
-        # Plot lines and markers
-        ax.plot(x, y, label=hemisphere, color=color, marker='o')
-
-    # Set figure title and labels
-    fig.suptitle(f"{parameter} Wave Power: {start} to {end}")
-    ax.set_xlabel("Latitude (Absolute)")
-    ax.set_ylabel("Wave Power")
-
-    # Add legend
-    # ax.legend()
 
     # Configure plot layout
     fig.tight_layout()
@@ -655,6 +667,7 @@ def wavefig(
         plt.savefig(fname)
 
     return fig
+
     
 # ############################################################################################################################### 
 
