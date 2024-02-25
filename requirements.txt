@@ -7,3 +7,4 @@ datetime
 scipy
 pyplot
 os
+plotly.express
