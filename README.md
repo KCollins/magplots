@@ -1,10 +1,11 @@
 # magplots
 A python library to pull data and make plots from ground magnetometers. Emphasis on plots for comparing magnetometers at conjugate points.
 
-Click here to run example code: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/KCollins/magplots/HEAD?labpath=Examples.ipynb)
+<!-- Click here to run example code: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/KCollins/magplots/HEAD?labpath=Examples.ipynb) -->
 
 ## Installation
 `pip install magplots`
+Make sure that you have a folder in your directory named `/output`. This is where plots and dataframes will be saved.
 
 ## MWE
 You can check all the component functions by running the `magall()` function with default values.
