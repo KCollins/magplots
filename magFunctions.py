@@ -110,11 +110,14 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
         print("No password given; cannot pull data from Tromsø Geophysical Observatory. Save a password locally in tgopw.txt.")
     
     df = pd.DataFrame()
-
+    
+    # Magnetometer parameter dict so that we don't have to type the full string:
+    tgo_dict = {'bfe':'bfe6d', 'roe':'roe1d', 'nrd':'nrd1d', 'thl':'thl6d', 'svs':'svs1d', 'kuv':'kuv1d', 'upn':'upn1d', 'dmh':'dmh1d', 'umq':'umq1d', 'atu':'atu1d', 'gdh': 'gdh4d', 'stf': 'stf1d', 'skt': 'skt1d', 'ghb':'ghb1d', 'fhb':'fhb1d', 'naq':'naq4d', 'tdc':'tdc4d', 'hov':'hov1d', 'sum':'sum1d'}
+    
     # Loop over each day from start to end
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
-        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={magname}4d&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
+        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
         if(is_verbose): print(url)
         # Fetch the data for the current day
         foo = pd.read_csv(url, skiprows = 6, delim_whitespace=True, usecols=range(5), index_col=False)
@@ -334,26 +337,20 @@ def magfig(
                                 va='bottom',ha='right')
 
 
-            try: 
-                magname = maglist_b[idx]
-                ax2 = axs[idx].twinx()
-                print('Plotting data for Antarctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
-                data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose) 
-                data['UT'] = pd.to_datetime(data['UT'])#, unit='s')
-                x =data['UT']
-                y =data[d[parameter]]
+            #  Corresponding Antarctic mag data on same plot...
+            magname = maglist_b[idx]
+            ax2 = axs[idx].twinx()
+            print('Plotting data for Antarctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
+            data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose) 
+            data['UT'] = pd.to_datetime(data['UT'])#, unit='s')
+            x =data['UT']
+            y =data[d[parameter]]
 
-                color = 'tab:red'
-                # ax2.set_ylabel('Y2-axis', color = color)
-                # ax2.plot(y, dataset_2, color = color)
-                # ax2.tick_params(axis ='y', labelcolor = color)
-                y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
-                ax2.plot(x,-y, color=color)#x, y)
-                ax2.set_ylabel(magname.upper(), color = color)
-                ax2.tick_params(axis ='y', labelcolor = color)
-            except Exception as e:
-                print(e)
-                continue
+            color = 'tab:red'
+            y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
+            ax2.plot(x,-y, color=color)
+            ax2.set_ylabel(magname.upper(), color = color)
+            ax2.tick_params(axis ='y', labelcolor = color)
         except Exception as e:
             print(e)
             continue
