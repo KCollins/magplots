@@ -158,6 +158,7 @@ def magfetch(
     start=datetime.datetime(2016, 1, 24, 0, 0, 0),
     end=datetime.datetime(2016, 1, 25, 0, 0, 0),
     magname="atu",
+    is_detrended = True,
     is_verbose=False,
     tgopw="",
     resolution="10sec",
@@ -170,6 +171,7 @@ def magfetch(
     Arguments:
         start, end  : datetimes of the start and end of sampled data range.
         magname     : IAGA ID for magnetometer being sampled. e.g.: 'upn'
+        is_detrended: Boolean for whether the median is subtracted out. 
         is_verbose  : Boolean for whether debugging text is printed.
         tgopw       : Password for Tromsø Geophysical Observatory
         resolution  : Data resolution for TGO data.
@@ -206,6 +208,11 @@ def magfetch(
 
     if is_verbose:
         print("Data for", magname.upper(), "collected:", len(data["UT"]), "samples.")
+    if is_detrended:
+        if is_verbose: print('Detrending data - subtracting the median.')
+        data['MAGNETIC_NORTH_-_H'] - np.median(data['MAGNETIC_NORTH_-_H'])
+        data['MAGNETIC_EAST_-_E'] - np.median(data['MAGNETIC_EAST_-_E'])
+        data['VERTICAL_DOWN_-_Z'] - np.median(data['VERTICAL_DOWN_-_Z'])
     return data
 
 ############################################################################################################################### 
@@ -217,6 +224,7 @@ def magdf(
     end = datetime.datetime(2016, 1, 25, 0, 0, 0), 
     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic magnetometers
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic magnetometers
+    is_detrended = True, 
     is_saved = False, 
     is_verbose = False
     ):
@@ -227,6 +235,7 @@ def magdf(
             start, end   : datetimes of the start and end of plots
             maglist_a     : List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
             maglist_b     : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+            is_detrended  : Boolean for whether median is subtracted from data. True by default.
             is_saved       : Boolean for whether resulting dataframe is saved to /output directory.
             is_verbose    : Boolean for whether debugging text is printed. 
 
@@ -250,7 +259,7 @@ def magdf(
         for idx, magname in enumerate(mags):   # For each magnetometer, pull data and merge into full_df:
             if(is_verbose): print('Pulling data for magnetometer: ' + magname.upper())
             try:                
-                df = magfetch(start, end, magname)
+                df = magfetch(start, end, magname, is_detrended = is_detrended)
                 df = pd.DataFrame.from_dict(df)
                 df.rename(columns=d_i, inplace=True)    # mnemonic column names
 
@@ -279,6 +288,7 @@ def magfig(
     end = datetime.datetime(2016, 1, 25, 0, 0, 0), 
     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
+    is_detrended = True, 
     is_displayed = False,
     is_saved = False, 
     is_verbose = False,
@@ -293,6 +303,7 @@ def magfig(
             start, end   : datetimes of the start and end of plots
             maglist_a    : List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
             maglist_b    : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+            is_detrended  : Boolean for whether median is subtracted from data. True by default.
             is_displayed : Boolean for whether resulting figure is displayed inline. False by default.
             is_saved     : Boolean for whether resulting figure is saved to /output directory.
             events       : List of datetimes for events marked on figure. Empty by default.
@@ -315,7 +326,7 @@ def magfig(
     for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
         print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
         try:             
-            data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose) 
+            data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose, is_detrended = is_detrended) 
             x =data['UT']
             y =data[d[parameter]]
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
@@ -386,6 +397,7 @@ def magspect(
         start, end: datetimes of the start and end of plots
         maglist_a: List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
         maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+        is_detrended  : Boolean for whether median is subtracted from data. True by default.
         is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
         is_saved: Boolean for whether resulting figure is saved to /output directory.
         events: List of datetimes for events marked on figure. Empty by default.
@@ -410,7 +422,7 @@ def magspect(
             print('Plotting data for ' + side + ' magnetometer #' + str(idx + 1) + ': ' + magname.upper())
 
             try:
-                data = magfetch(start, end, magname, is_verbose=is_verbose)
+                data = magfetch(start, end, magname, is_verbose=is_verbose, is_detrended = is_detrended)
                 x = data['UT']
                 y = data[d[parameter]]
                 y = reject_outliers(y)
@@ -462,7 +474,8 @@ def wavepwr(station_id,
             end, 
             f_lower = 2.5,        # frequency threshold in mHz 
             f_upper = 3,     # frequency threshold in mHz
-            is_verbose = False
+            is_verbose = False,
+            is_detrended = True
            ):
     """
          Function to determine Pc5 (by default) wave power for a given magnetometer, parameter and time frame.
@@ -473,6 +486,7 @@ def wavepwr(station_id,
                start, end      : datetimes of interval
                f_lower, f_upper : Range of frequencies of interest in mHz.
                is_verbose      : Print details of calculation. False by default. 
+                is_detrended  : Boolean for whether median is subtracted from data. True by default.
 
         Returns:
                pwr        : Calculated wave power in range of interest. 
@@ -482,7 +496,7 @@ def wavepwr(station_id,
     # print(magname)
     try:
         if(is_verbose): print('Checking wave power for magnetometer ' + magname.upper() + ' between ' + str(start) + ' and ' + str(end) + '.')
-        data = magfetch(start, end, magname, is_verbose = is_verbose)
+        data = magfetch(start, end, magname, is_verbose = is_verbose, is_detrended = True)
         x =data['UT']
         y =data[d[parameter]]
 
@@ -525,6 +539,7 @@ def wavefig(
     f_lower=2.5,  # frequency threshold in mHz
     f_upper=3,  # frequency threshold in mHz
     is_maglist_only=True,
+    is_detrended = True,
     is_displayed=True,
     is_saved=False,
     is_data_saved=False,
@@ -548,6 +563,8 @@ def wavefig(
         f_lower, f_upper : Range of frequencies of interest in mHz.
         is_maglist_only : Boolean for whether only maglist_a and maglist_b stations
                     are included from the complete station list.
+        is_detrended  : Boolean for whether median is subtracted from data. 
+                    True by default.
         is_displayed  : Boolean for whether resulting figure is displayed inline.
                     False by default.
         is_saved  : Boolean for whether resulting figure is saved to /output
@@ -583,6 +600,7 @@ def wavefig(
             f_lower=f_lower,
             f_upper=f_upper,
             is_verbose=is_verbose,
+            is_detrended = is_detrended
         ),
         axis=1,
     )
@@ -675,6 +693,7 @@ def magall(
     maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
     f_lower = 2.5,        # frequency threshold in mHz 
     f_upper = 3,     # frequency threshold in mHz
+    is_detrended = True, 
     is_displayed=False,
     is_saved=True,
     is_verbose=False,
@@ -693,6 +712,7 @@ def magall(
         maglist_a: List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
         maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
         f_lower, f_upper : Range of frequencies of interest in mHz.
+        is_detrended  : Boolean for whether median is subtracted from data. True by default.
         is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
         is_saved: Boolean for whether resulting figure is saved to /output directory.
         events: List of datetimes for events marked on figure. Empty by default.
