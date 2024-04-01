@@ -91,7 +91,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
 
 ############################################################################################################################### 
 
-def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbose=False):
+def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbose=False, is_url_printed=False):
     """
     Pulls data from a RESTful API with a link based on the date.
 
@@ -102,6 +102,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
         tgopw (str): Password for Tromsø Geophysical Observatory.
         resolution (str): String for data resolution; e.g., '10sec'; default '1sec'
         is_verbose   : Boolean for whether debugging text is printed.
+        is_url_printed: Boolean for whether URL link to TGO is printed in debugging text.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame containing the fetched data.
@@ -118,7 +119,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
         url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
-        if(is_verbose): print(url)
+        if(is_url_printed): print(url)
         # Fetch the data for the current day
         foo = pd.read_csv(url, skiprows = 6, delim_whitespace=True, usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
@@ -428,6 +429,7 @@ def magspect(
                 df = pd.DataFrame(y, x)
                 df = df.interpolate('linear')
                 y = df[0].values
+                dt_list = [] # preallocate
 
                 xlim = [start, end]
 
@@ -439,8 +441,10 @@ def magspect(
                 axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
 
                 axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper())
-
+                if(is_verbose): print("Power spectrum plotted for " + magname.upper())
+                
                 if events is not None:
+                    if(is_verbose): print('Adding events for ' +magname.upper())
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
                                                                         axs[idx, sideidx].transAxes)
                     for event in events:
@@ -494,6 +498,7 @@ def wavepwr(station_id,
     """
     magname = station_id.lower()
     d = {'Bx':'MAGNETIC_NORTH_-_H', 'By':'MAGNETIC_EAST_-_E','Bz':'VERTICAL_DOWN_-_Z'}
+    win = 0 # preallocate
     # print(magname)
     try:
         if(is_verbose): print('Checking wave power for magnetometer ' + magname.upper() + ' between ' + str(start) + ' and ' + str(end) + '.')
@@ -733,7 +738,9 @@ def magall(
         if(is_verbose): print('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, events = events)
         if(is_verbose): print('Saving spectrogram plot.')
-        magspect(parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, events = events, event_fontdict = event_fontdict, myFmt = myFmt)
+        magspect(parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_verbose = is_verbose, is_saved = is_saved, 
+                 # events = events, 
+                 event_fontdict = event_fontdict, myFmt = myFmt)
         if(is_verbose): print('Generating wave power plot.')
         wavefig(stations = stations, parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, f_lower = f_lower, f_upper = f_upper, is_maglist_only = is_maglist_only,  is_displayed = is_displayed, is_saved = is_saved, is_verbose = is_verbose)
                       
