@@ -31,4 +31,4 @@ This plot is produced with the `magspect()` function:
 
 ### Wave Power Plot: 
 This plot is produced with the `wavefig()` function, which calls `wavepwr()` to calculate the wave power for each station within a given frequency range. 
-![waveplot](output/Example_WavePower_2016-01_24_Bx.png)
+![waveplot](output/Example_WavePower_2016-01-24_Bx.png)
