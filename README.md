@@ -1,5 +1,8 @@
 # magplots
-A python library to pull data and make plots from ground magnetometers. Emphasis on plots for comparing magnetometers at conjugate points.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10703227.svg)](https://doi.org/10.5281/zenodo.10703227)
+
+A python library to pull data and make plots from ground magnetometers. Emphasis on plots for comparing magnetometers at geomagnetic conjugate points.
+
 
 <!-- Click here to run example code: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/KCollins/magplots/HEAD?labpath=Examples.ipynb) -->
 
