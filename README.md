@@ -30,5 +30,5 @@ This plot is produced with the `magspect()` function:
 ![spectrogram](output/Example_PowerSpectrum_2016-01-24_Bx.png)
 
 ### Wave Power Plot: 
-This plot is produced with the `wavefig()` function, which calls `wavepwr()` to calculate the wave power for each station within a given frequency range. 
+This plot is produced with the `wavefig()` function, which calls `wavepwr()` to calculate the wave power for each station within a given frequency range. By default the frequency range used is the Pc5 range, 1.667 to 6.667 mHz (150-600s). For a given timespan, the integrated wave power is plotted versus the latitude of the stations, with different colors for Arctic and Antarctic magnetometers, in order to illustrate hemispheric asymmetry. This approach is based on Figure 4 of [Pilipenko 2021](https://www.doi.org/10.1029/2020JA028048).
 ![waveplot](output/Example_WavePower_2016-01-24_Bx.png)
