@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- affiliation: Space Science Institute
+  family-names: Collins
+  given-names: Kristina
+  orcid: 0000-0002-3816-1948
+title: "magplots: a Python library for conjugate ground magnetometers"
+version: 1.0.0
+doi: 10.5281/zenodo.10703227
+license:
+- mit
+date-released: 2024-04-22
+url: "https://github.com/KCollins/magplots"
+repository-code: https://github.com/KCollins/magplots
+type: software
+
+
+
