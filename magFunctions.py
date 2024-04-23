@@ -434,7 +434,7 @@ def magspect(
 
                 xlim = [start, end]
 
-                f, t, Zxx = stft(y - np.mean(y), fs=1, nperseg=1800, noverlap=1200)
+                f, t, Zxx = stft(y - np.mean(y), fs=1, nperseg=len(y), noverlap=1200)
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t]
 
                 axs[idx, sideidx].grid(False)
