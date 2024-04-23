@@ -409,7 +409,6 @@ def magspect(
     Returns:
         Figure of stacked plots for date in question, with events marked.
     """
-    d = {'Bx': 'MAGNETIC_NORTH_-_H', 'By': 'MAGNETIC_EAST_-_E', 'Bz': 'VERTICAL_DOWN_-_Z'}
     if is_saved:
         fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
         if os.path.exists(fname):
@@ -419,14 +418,26 @@ def magspect(
     fig, axs = plt.subplots(len(maglist_a), 2, figsize=(25, 25), constrained_layout=True)
     print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
 
+    all_the_data = magdf(start=start,
+                 end=end,
+                 maglist_a=maglist_a,
+                 maglist_b=maglist_b,
+                 is_detrended=is_detrended,
+                 is_saved=is_saved,
+                 is_verbose=is_verbose)
+    assert all_the_data.shape[1] == 5
+    
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
         for idx, magname in enumerate(maglist):
             print('Plotting data for ' + side + ' magnetometer #' + str(idx + 1) + ': ' + magname.upper())
 
             try:
-                data = magfetch(start, end, magname, is_verbose=is_verbose)
+                data = all_the_data[all_the_data["Magnetometer"] == magname.upper()]
+                assert data.shape[0] > 0
+                assert data.shape[1] == 5
                 x = data['UT']
-                y = data[d[parameter]]
+                y = data[parameter]
+                assert len(x) == len(y)
                 y = reject_outliers(y)
                 df = pd.DataFrame(y, x)
                 df = df.interpolate('linear')
