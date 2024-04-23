@@ -535,7 +535,7 @@ def wavepwr(station_id,
         y = fill_nan(y)
         y = y - np.nanmean(y)  # Detrend
 
-        dt = (x[1] - x[0]).seconds
+        dt = (x.iloc[1] - x.iloc[0]).seconds
         fs = 1 / dt
 
         datos = y
