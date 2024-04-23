@@ -118,7 +118,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
         url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
         if(is_url_printed): print(url)
         # Fetch the data for the current day
-        foo = pd.read_csv(url, skiprows = 6, delim_whitespace=True, usecols=range(5), index_col=False)
+        foo = pd.read_csv(url, skiprows = 6, sep=r"\s+", usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
         foo['DD/MM/YYYY HH:MM:SS'] = foo['DD/MM/YYYY'] + ' ' + foo['HH:MM:SS']
         foo['UT'] = pd.to_datetime(foo['DD/MM/YYYY HH:MM:SS'], format='%d/%m/%Y %H:%M:%S')
