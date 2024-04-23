@@ -273,9 +273,11 @@ def magdf(
                 print(e)
                 continue
     full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
-    full_df.drop(columns = ['UT_1']) # discard superfluous column
     full_df = full_df[full_df['Magnetometer'] != ''] # drop empty rows
-    full_df = full_df.drop(['UT_1'], axis=1) # drop extraneous columns
+    full_df = full_df.drop(['UT_1'], # drop extraneous columns
+                           axis=1,
+                           errors='ignore' # some stations don't seem to have this columm # TODO why is this
+                           )
     if is_saved:
         if(is_verbose): print('Saving as a CSV.')
         full_df.to_csv(fname, index=False)
@@ -493,6 +495,7 @@ def wavepwr(station_id,
             end, 
             f_lower = 1.667,        # frequency threshold in mHz (600 secs => 1.667 mHz)
             f_upper = 6.667,        # frequency threshold in mHz (150 secs => 6.667 mHz)
+            is_saved = False,
             is_verbose = False,
             is_detrended = True
            ):
@@ -504,6 +507,7 @@ def wavepwr(station_id,
                parameter        : 'Bx', 'By' or 'Bz'
                start, end      : datetimes of interval
                f_lower, f_upper : Range of frequencies of interest in mHz.
+               is_saved       : Boolean for whether loaded data is saved to /output directory.
                is_verbose      : Print details of calculation. False by default. 
                 is_detrended  : Boolean for whether median is subtracted from data. True by default.
 
@@ -511,14 +515,24 @@ def wavepwr(station_id,
                pwr        : Calculated wave power in range of interest. 
     """
     magname = station_id.lower()
-    d = {'Bx':'MAGNETIC_NORTH_-_H', 'By':'MAGNETIC_EAST_-_E','Bz':'VERTICAL_DOWN_-_Z'}
+
+    all_the_data = magdf(
+        start=start,
+        end=end,
+        maglist_a=[magname], # it does not matter whether this is actually an Artic magnetometer
+        maglist_b=[],
+        is_detrended=is_detrended,
+        is_saved=is_saved,
+        is_verbose=is_verbose
+    )
+    
     win = 0 # preallocate
     # print(magname)
     try:
         if(is_verbose): print('Checking wave power for magnetometer ' + magname.upper() + ' between ' + str(start) + ' and ' + str(end) + '.')
-        data = magfetch(start, end, magname, is_verbose = is_verbose, is_detrended = True)
+        data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
         x =data['UT']
-        y =data[d[parameter]]
+        y =data[parameter]
 
 
         y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
@@ -619,6 +633,7 @@ def wavefig(
             end=end,
             f_lower=f_lower,
             f_upper=f_upper,
+            is_saved=is_saved, # TODO is_saved and is_data_saved could be confusing to users here
             is_verbose=is_verbose,
             is_detrended = is_detrended
         ),
