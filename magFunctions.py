@@ -754,7 +754,7 @@ def magall(
                            are included from the complete station list.
 
     Returns:
-        Saves all files to \output directory.
+        Saves all files to output/ directory.
     """
     for parameter in ['Bx', 'By', 'Bz']:
         if(is_verbose): print('Computing plots for parameter ' + parameter + '.')
