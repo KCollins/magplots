@@ -252,7 +252,7 @@ def magdf(
         fname = 'output/' +str(start) + '_' + '.csv'
         if os.path.exists(fname):
             if(is_verbose): print('Looks like ' + fname + ' has already been generated. Pulling data...')
-            return pd.read_csv(fname)
+            return pd.read_csv(fname, parse_dates=[0])
     UT = pd.date_range(start, end, freq ='S')   # preallocate time range
     full_df = pd.DataFrame(UT, columns=['UT'])   # preallocate dataframe
     full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
@@ -278,7 +278,7 @@ def magdf(
     full_df = full_df.drop(['UT_1'], axis=1) # drop extraneous columns
     if is_saved:
         if(is_verbose): print('Saving as a CSV.')
-        full_df.to_csv(fname)
+        full_df.to_csv(fname, index=False)
     # print(full_df)
     return full_df 
 
