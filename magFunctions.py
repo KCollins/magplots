@@ -313,10 +313,6 @@ def magfig(
         Returns:
             
     """
-    
-    
-    # Magnetometer parameter dict so that we don't have to type the full string: 
-    d = {'Bx':'MAGNETIC_NORTH_-_H', 'By':'MAGNETIC_EAST_-_E','Bz':'VERTICAL_DOWN_-_Z'}
     if is_saved:
         fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
         if os.path.exists(fname):
@@ -325,12 +321,23 @@ def magfig(
             # raise Exception('This file has already been generated.')
     fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25), constrained_layout=True)
     print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
+
+    all_the_data = magdf(
+        start=start,
+        end=end,
+        maglist_a=maglist_a,
+        maglist_b=maglist_b,
+        is_detrended=is_detrended,
+        is_saved=is_saved,
+        is_verbose=is_verbose
+    )
+
     for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
         print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
         try:             
-            data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose, is_detrended = is_detrended) 
+            data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
             x =data['UT']
-            y =data[d[parameter]]
+            y =data[parameter]
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             axs[idx].plot(x,y)#x, y)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
@@ -354,10 +361,9 @@ def magfig(
             magname = maglist_b[idx]
             ax2 = axs[idx].twinx()
             print('Plotting data for Antarctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
-            data = magfetch(start = start, end = end, magname = magname, is_verbose=is_verbose) 
-            data['UT'] = pd.to_datetime(data['UT'])#, unit='s')
+            data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
             x =data['UT']
-            y =data[d[parameter]]
+            y =data[parameter]
 
             color = 'tab:red'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
