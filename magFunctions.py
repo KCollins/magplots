@@ -28,7 +28,8 @@ from scipy.signal import butter, filtfilt, stft, spectrogram
 import datetime as dt
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import welch, hann
+from scipy.signal import welch
+from scipy.signal.windows import hann
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
