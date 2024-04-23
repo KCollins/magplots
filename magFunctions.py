@@ -253,7 +253,7 @@ def magdf(
         if os.path.exists(fname):
             if(is_verbose): print('Looks like ' + fname + ' has already been generated. Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
-    UT = pd.date_range(start, end, freq ='S')   # preallocate time range
+    UT = pd.date_range(start, end, freq ='s')   # preallocate time range
     full_df = pd.DataFrame(UT, columns=['UT'])   # preallocate dataframe
     full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
     full_df['Magnetometer'] = ""
