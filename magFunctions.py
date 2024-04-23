@@ -84,11 +84,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
     """
     mean = np.mean(y)
     sd = np.std(y)
-    final_list = np.copy(y)
-    for n in range(len(y)):
-        final_list[n] = y[n] if y[n] > mean - 3 * sd else np.nan
-        final_list[n] = final_list[n] if final_list[n] < mean + 5 * sd else np.nan
-    return final_list
+    return np.where((mean - 3 * sd < y) & (y < mean + 5 * sd), y, np.nan)
 
 ############################################################################################################################### 
 
