@@ -468,8 +468,14 @@ def magspect(
 
                 xlim = [start, end]
 
-                f, t, Zxx = stft(y - np.mean(y), fs=1, nperseg=1800, noverlap=1200)
-                dt_list = [start + datetime.timedelta(seconds=ii) for ii in t]
+                # sample frequency in units of [1/s]
+                fs = 1/60 if side == 'Arctic' else 1
+
+                nperseg = 1800//60 if side == 'Arctic' else 1800
+                noverlap = 1200//60 if side == 'Arctic' else 1200
+
+                f, t, Zxx = stft(y - np.mean(y), fs=fs, nperseg=nperseg, noverlap=noverlap)
+                dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
 
                 axs[idx, sideidx].grid(False)
                 cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5)
@@ -534,7 +540,7 @@ def wavepwr(station_id,
     all_the_data = magdf(
         start=start,
         end=end,
-        maglist_a=[magname], # it does not matter whether this is actually an Artic magnetometer
+        maglist_a=[magname], # it does not matter whether this is actually an Arctic magnetometer
         maglist_b=[],
         is_detrended=is_detrended,
         is_saved=is_saved,
