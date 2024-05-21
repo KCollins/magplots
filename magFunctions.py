@@ -169,7 +169,7 @@ def magfetch(
     Arguments:
         start, end  : datetimes of the start and end of sampled data range.
         magname     : IAGA ID for magnetometer being sampled. e.g.: 'upn'
-        is_detrended: Boolean for whether the median is subtracted out. 
+        is_detrended: Boolean for whether the median is subtracted out.
         is_verbose  : Boolean for whether debugging text is printed.
         tgopw       : Password for Tromsø Geophysical Observatory
         resolution  : Data resolution for TGO data.
@@ -223,8 +223,10 @@ def magdf(
     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic magnetometers
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic magnetometers
     is_detrended = True, 
+    is_pivoted   = False, 
+    is_uniform = False, 
     is_saved = False, 
-    is_verbose = False
+    is_verbose = False,
     ):
     """
        Function to create power plots for conjugate magnetometers.
@@ -234,6 +236,9 @@ def magdf(
             maglist_a     : List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
             maglist_b     : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
             is_detrended  : Boolean for whether median is subtracted from data. True by default.
+            is_pivoted    : Boolean for whether returned dataframe is organized by timestamp. False by default.
+            is_uniform    : Boolean for whether the resolution is made uniform (i.e., downsampled to slowest cadence.) True by default.
+                          (Time series plots can be native resolution for both sets, but spectrogram plots should be uniform.)
             is_saved       : Boolean for whether resulting dataframe is saved to /output directory.
             is_verbose    : Boolean for whether debugging text is printed. 
 
@@ -274,6 +279,17 @@ def magdf(
                            axis=1,
                            errors='ignore' # some stations don't seem to have this columm # TODO why is this
                            )
+    df_pivoted = full_df.pivot(index='UT', columns='Magnetometer', values=['Bx', 'By', 'Bz'])
+    if is_pivoted:
+        if(is_verbose): print("Pivoting to index by time.")
+        full_df = df_pivoted
+    if is_uniform:
+        if(is_verbose): print('Discarding NaN rows.')
+        df_pivoted = df_pivoted.dropna()
+        if(is_pivoted == False):
+            print('Returning to original format. TODO')
+            full_df = df_pivoted.unstack(level=1).unstack().unstack().transpose()
+            full_df = full_df.reset_index()
     if is_saved:
         if(is_verbose): print('Saving as a CSV.')
         full_df.to_csv(fname, index=False)
@@ -427,9 +443,12 @@ def magspect(
                  maglist_a=maglist_a,
                  maglist_b=maglist_b,
                  is_detrended=is_detrended,
+                 is_pivoted = False,
+                 is_uniform = True,
                  is_saved=is_saved,
                  is_verbose=is_verbose)
-    assert all_the_data.shape[1] == 5
+    if(is_verbose): print(all_the_data.head(10))
+    # assert all_the_data.shape[1] == 5
     
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
         for idx, magname in enumerate(maglist):
@@ -470,7 +489,7 @@ def magspect(
                         if evt_label is not None:
                             axs[idx, sideidx].text(evt_dtime, 0.01, evt_label, transform=trans,
                                                    rotation=90, fontdict=event_fontdict, color=evt_color,
-                                                   va='bottom', ha='right')
+                                                   va='bottom', ha='left')
 
             except Exception as e:
                 print(e)
@@ -505,7 +524,7 @@ def wavepwr(station_id,
                f_lower, f_upper : Range of frequencies of interest in mHz.
                is_saved       : Boolean for whether loaded data is saved to /output directory.
                is_verbose      : Print details of calculation. False by default. 
-                is_detrended  : Boolean for whether median is subtracted from data. True by default.
+               is_detrended  : Boolean for whether median is subtracted from data. True by default.
 
         Returns:
                pwr        : Calculated wave power in range of interest. 
@@ -661,7 +680,7 @@ def wavefig(
                 marker="o",
                 linestyle="-",
             )
-            ax.set_ylabel("Wave Power (Arctic)", color=color)
+            ax.set_ylabel("Arctic Wave Power (nT/Hz^(1/2))", color=color)
             ax.tick_params(axis="y", labelcolor=color)
         # Create secondary y-axis for Antarctic stations
         else:
@@ -675,7 +694,7 @@ def wavefig(
                 linestyle="-",
             )
 
-            ax2.set_ylabel("Wave Power (Antarctic)", color=color)
+            ax2.set_ylabel("Antarctic Wave Power (nT/Hz^(1/2))", color=color)
             ax2.tick_params(axis="y", labelcolor=color)
 
         # Annotate each point with station label
