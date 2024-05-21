@@ -468,11 +468,14 @@ def magspect(
 
                 xlim = [start, end]
 
+                # sampling rate in units of [s]
+                rate = 10
+                
                 # sample frequency in units of [1/s]
-                fs = 1/60 #if side == 'Arctic' else 1
+                fs = 1/rate #if side == 'Arctic' else 1
             
-                nperseg = 1800//60 #if side == 'Arctic' else 1800
-                noverlap = 1200//60 #if side == 'Arctic' else 1200
+                nperseg = 1800//rate #if side == 'Arctic' else 1800
+                noverlap = 1200//rate #if side == 'Arctic' else 1200
 
                 f, t, Zxx = stft(y - np.mean(y), fs=fs, nperseg=nperseg, noverlap=noverlap)
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
