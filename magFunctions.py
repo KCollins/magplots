@@ -290,9 +290,10 @@ def magdf(
         if(is_verbose): print('Discarding NaN rows.')
         df_pivoted = df_pivoted.dropna()
         if(is_pivoted == False):
-            print('Returning to original format. TODO')
+            print('Returning to original format.')
             full_df = df_pivoted.unstack(level=1).unstack().unstack().transpose()
             full_df = full_df.reset_index()
+        if(is_verbose): print('Dataframe shape: ' + str(full_df.shape))
     if is_saved:
         if(is_verbose): print('Saving as a CSV.')
         full_df.to_csv(fname, index=False)
