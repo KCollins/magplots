@@ -436,8 +436,6 @@ def magspect(
     Returns:
         Figure of stacked plots for date in question, with events marked.
     """
-    if is_uniform == False:
-        print("Warning: Scaling will not work correctly without uniform sampling.")
     if is_saved:
         fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
         if os.path.exists(fname):
@@ -461,6 +459,7 @@ def magspect(
     
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
         for idx, magname in enumerate(maglist):
+            if is_verbose: print()
             print('Plotting data for ' + side + ' magnetometer #' + str(idx + 1) + ': ' + magname.upper())
 
             try:
@@ -477,8 +476,17 @@ def magspect(
 
                 xlim = [start, end]
 
+                rates = x.diff().iloc[1:].unique().seconds
+                if len(rates) != 1:
+                    raise ValueError("Data does not have single sampling rate")
+                
                 # sampling rate in units of [s]
-                rate = 10
+                rate = rates[0]
+                
+                if is_uniform and rate != 10:
+                    raise Exception("Sampling rate should be 10 [s]")
+                
+                if is_verbose: print(f'magnetometer {magname} has rate {rate}')
                 
                 # sample frequency in units of [1/s]
                 fs = 1/rate #if side == 'Arctic' else 1
@@ -486,8 +494,12 @@ def magspect(
                 nperseg = 1800//rate #if side == 'Arctic' else 1800
                 noverlap = 1200//rate #if side == 'Arctic' else 1200
 
+                if is_verbose: print(f'{rate=} {fs=} {nperseg=} {noverlap=}')
+
                 f, t, Zxx = stft(y - np.mean(y), fs=fs, nperseg=nperseg, noverlap=noverlap)
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
+
+                if is_verbose: print(f'{f[1] - f[0]=} {dt_list[1] - dt_list[0]=}')
 
                 axs[idx, sideidx].grid(False)
                 cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5)
@@ -510,6 +522,7 @@ def magspect(
                                                    va='bottom', ha='left')
 
             except Exception as e:
+                raise
                 print(e)
                 continue
 
