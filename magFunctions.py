@@ -250,7 +250,10 @@ def magdf(
 
     d_i = dict((v, k) for k, v in d.items()) # inverted mapping for col renaming later
     if is_saved:
-        fname = 'output/' +str(start) + '_' + '.csv'
+        fname = 'output/' +str(start) + '_to_' + str(end) + '_'  
+        if(is_pivoted): fname = fname + 'pivoted_'
+        if(is_uniform): fname = fname + 'uniform'
+        fname = fname + '.csv'
         if os.path.exists(fname):
             if(is_verbose): print('Looks like ' + fname + ' has already been generated. Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
@@ -408,6 +411,7 @@ def magspect(
     is_displayed=False,
     is_saved=True,
     is_verbose=False,
+    is_uniform = True, 
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
     myFmt=mdates.DateFormatter('%H:%M')
@@ -422,6 +426,8 @@ def magspect(
         maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
         is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
         is_saved: Boolean for whether resulting figure is saved to /output directory.
+        is_verbose: Boolean for displaying debugging text. 
+        is_uniform: Boolean to pass to magdf() so that both sets of plots are the same resolution. True by default. 
         events: List of datetimes for events marked on figure. Empty by default.
         event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
         myFmt: Date formatter. By default: mdates.DateFormatter('%H:%M')
@@ -429,6 +435,8 @@ def magspect(
     Returns:
         Figure of stacked plots for date in question, with events marked.
     """
+    if is_uniform == False:
+        print("Warning: Scaling will not work correctly without uniform sampling.")
     if is_saved:
         fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
         if os.path.exists(fname):
@@ -444,7 +452,7 @@ def magspect(
                  maglist_b=maglist_b,
                  is_detrended=is_detrended,
                  is_pivoted = False,
-                 is_uniform = True,
+                 is_uniform = is_uniform,
                  is_saved=is_saved,
                  is_verbose=is_verbose)
     if(is_verbose): print(all_the_data.head(10))
