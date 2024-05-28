@@ -362,7 +362,7 @@ def magfig(
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             axs[idx].plot(x,y, color=color)#x, y)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
-            axs[idx].set_ylabel(magname.upper(), color = color)
+            axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color = color)
             axs[idx].tick_params(axis ='y', labelcolor = color)
 
             if events is not None:
@@ -391,7 +391,7 @@ def magfig(
             color = 'tab:red'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             ax2.plot(x,-y, color=color)
-            ax2.set_ylabel(magname.upper(), color = color)
+            ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
             ax2.tick_params(axis ='y', labelcolor = color)
         except Exception as e:
             print(e)
