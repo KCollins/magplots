@@ -310,6 +310,7 @@ def magfig(
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
     is_detrended = True, 
     is_displayed = False,
+    is_titled = True, 
     is_saved = False, 
     is_verbose = False,
     events=None, event_fontdict = {'size':20,'weight':'bold'}
@@ -325,6 +326,7 @@ def magfig(
             maglist_b    : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
             is_detrended  : Boolean for whether median is subtracted from data. True by default.
             is_displayed : Boolean for whether resulting figure is displayed inline. False by default.
+            is_titled    : Boolean for overall plot title. True by default. 
             is_saved     : Boolean for whether resulting figure is saved to /output directory.
             events       : List of datetimes for events marked on figure. Empty by default.
 
@@ -362,7 +364,7 @@ def magfig(
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             axs[idx].plot(x,y, color=color)#x, y)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
-            axs[idx].set_ylabel(magname.upper(), color = color)
+            axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color = color)
             axs[idx].tick_params(axis ='y', labelcolor = color)
 
             if events is not None:
@@ -391,12 +393,12 @@ def magfig(
             color = 'tab:red'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             ax2.plot(x,-y, color=color)
-            ax2.set_ylabel(magname.upper(), color = color)
+            ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
             ax2.tick_params(axis ='y', labelcolor = color)
         except Exception as e:
             print(e)
             continue
-    fig.suptitle(str(start) + ' ' +  str(parameter), fontsize=30)    # Title the plot...
+    if(is_titled == True): fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)    # Title the plot...
     if is_saved:
         print("Saving figure. " + fname)
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
