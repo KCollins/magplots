@@ -153,8 +153,8 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
 
 ############################################################################################################################### 
 def magfetch(
-    start=datetime.datetime(2016, 1, 24, 0, 0, 0),
-    end=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    start=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     magname="atu",
     is_detrended = True,
     is_verbose=False,
@@ -218,8 +218,8 @@ def magfetch(
 # MAGDF Function to create multi-indexable dataframe of all mag parameters for a given period of time. 
 
 def magdf(
-    start = datetime.datetime(2016, 1, 24, 0, 0, 0), 
-    end = datetime.datetime(2016, 1, 25, 0, 0, 0), 
+    start = datetime.datetime(2016, 1, 25, 0, 0, 0), 
+    end = datetime.datetime(2016, 1, 26, 0, 0, 0), 
     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic magnetometers
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic magnetometers
     is_detrended = True, 
@@ -304,8 +304,8 @@ def magdf(
 
 def magfig(
     parameter = 'Bx',
-    start = datetime.datetime(2016, 1, 24, 0, 0, 0), 
-    end = datetime.datetime(2016, 1, 25, 0, 0, 0), 
+    start = datetime.datetime(2016, 1, 25, 0, 0, 0), 
+    end = datetime.datetime(2016, 1, 26, 0, 0, 0), 
     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
     is_detrended = True, 
@@ -331,6 +331,7 @@ def magfig(
         Returns:
             
     """
+    
     if is_saved:
         fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
         if os.path.exists(fname):
@@ -349,6 +350,7 @@ def magfig(
         is_saved=is_saved,
         is_verbose=is_verbose
     )
+    
 
     for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
         print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
@@ -356,9 +358,12 @@ def magfig(
             data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
             x =data['UT']
             y =data[parameter]
+            color = 'tab:blue'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
-            axs[idx].plot(x,y)#x, y)
+            axs[idx].plot(x,y, color=color)#x, y)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
+            axs[idx].set_ylabel(magname.upper(), color = color)
+            axs[idx].tick_params(axis ='y', labelcolor = color)
 
             if events is not None:
                 # print('Plotting events...')
@@ -404,8 +409,8 @@ def magfig(
    
 def magspect(
     parameter='Bx',
-    start=datetime.datetime(2016, 1, 24, 0, 0, 0),
-    end=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    start=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
     is_detrended = True,
@@ -599,8 +604,8 @@ def wavepwr(station_id,
 def wavefig(
     stations="",  # dataframe
     parameter="Bx",
-    start=datetime.datetime(2016, 1, 24, 0, 0, 0),
-    end=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    start=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a=["upn", "umq", "gdh", "atu", "skt", "ghb"],
     maglist_b=["pg0", "pg1", "pg2", "pg3", "pg4", "pg5"],
     f_lower=1.667,  # frequency threshold in mHz
@@ -755,8 +760,8 @@ def wavefig(
 # ############################################################################################################################### 
 
 def magall(
-    start=datetime.datetime(2016, 1, 24, 0, 0, 0),
-    end=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    start=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
     f_lower = 1.667,        # frequency threshold in mHz 
