@@ -499,8 +499,10 @@ def magspect(
                 axs[idx, sideidx].grid(False)
                 cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5)
                 axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
+                axs[idx, sideidx].set_xlabel('Time') 
+                axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
 
-                axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper())
+                axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
 
                 if events is not None:
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
@@ -520,9 +522,9 @@ def magspect(
                 print(e)
                 continue
 
-    fig.suptitle(str(start) + ' ' + str(parameter), fontsize=30)  # Title the plot...
+    fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter), fontsize=30)  # Title the plot...
     if is_saved:
-        fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
+        fname = 'output/PowerSpectrum_' + str(start) + ' to ' + str(end) + '_' + str(parameter) + '.png'
         print("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
