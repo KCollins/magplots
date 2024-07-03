@@ -420,6 +420,8 @@ def magspect(
     is_saved=True,
     is_verbose=False,
     is_uniform = True, 
+    is_overplotted = True, 
+    color = "white", # default color for overplotting time domain data
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
     myFmt=mdates.DateFormatter('%H:%M')
@@ -436,6 +438,8 @@ def magspect(
         is_saved: Boolean for whether resulting figure is saved to /output directory.
         is_verbose: Boolean for displaying debugging text. 
         is_uniform: Boolean to pass to magdf() so that both sets of plots are the same resolution. True by default. 
+        is_overplotted: Time domain plot is overlaid on spectrogram plot. True by default.
+        color: Color for overplotting time domain data. White by default.
         events: List of datetimes for events marked on figure. Empty by default.
         event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
         myFmt: Date formatter. By default: mdates.DateFormatter('%H:%M')
@@ -503,6 +507,20 @@ def magspect(
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
 
                 axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
+
+                if(is_overplotted == True):# overplot time domain data
+                        # Create a new twin axis for the time domain plot
+                        ax2 = axs[idx, sideidx].twinx()
+                        
+                        # Plot the time domain data on the twin axis
+                        ax2.plot(x, y, color=color, alpha=0.7, label=parameter)  # Adjust color and label as needed
+                        
+                        # Adjust x-axis limits to match spectrogram
+                        ax2.set_xlim(xlim)
+                        
+                        # Hide the second y-axis labels and ticks (optional)
+                        ax2.set_ylabel('')
+                        ax2.tick_params(axis='y', which='both', labelleft=False)
 
                 if events is not None:
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
