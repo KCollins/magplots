@@ -501,7 +501,8 @@ def magspect(
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
 
                 axs[idx, sideidx].grid(False)
-                cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5)
+                cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5) # may produce BW plot
+                # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
                 axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
                 axs[idx, sideidx].set_xlabel('Time') 
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
@@ -509,6 +510,7 @@ def magspect(
                 axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
 
                 if(is_overplotted == True):# overplot time domain data
+                        if(is_verbose): print("Plotting time domain data on spectrogram plot.")
                         # Create a new twin axis for the time domain plot
                         ax2 = axs[idx, sideidx].twinx()
                         
