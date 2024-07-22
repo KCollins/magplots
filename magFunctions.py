@@ -36,6 +36,9 @@ from plotly.subplots import make_subplots
 # For wave power plots:
 import plotly.express as px
 
+# For spectrograms:
+import matplotlib.colors as colors
+
 ############################################################################################################################### 
 
 # #  FILL_NAN: Function to eliminate NaN values from a 1D numpy array.
@@ -420,6 +423,8 @@ def magspect(
     is_saved=True,
     is_verbose=False,
     is_uniform = True, 
+    is_logaxis = False,
+    colormap = "viridis", # matplotlib colormap
     is_overplotted = True, 
     color = "white", # default color for overplotting time domain data
     events=None,
@@ -438,6 +443,7 @@ def magspect(
         is_saved: Boolean for whether resulting figure is saved to /output directory.
         is_verbose: Boolean for displaying debugging text. 
         is_uniform: Boolean to pass to magdf() so that both sets of plots are the same resolution. True by default. 
+        colormap: matplotlib colormap name. Viridis by default.
         is_overplotted: Time domain plot is overlaid on spectrogram plot. True by default.
         color: Color for overplotting time domain data. White by default.
         events: List of datetimes for events marked on figure. Empty by default.
@@ -501,13 +507,22 @@ def magspect(
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
 
                 axs[idx, sideidx].grid(False)
-                cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5) # may produce BW plot
+                # Create a logarithmic norm for the colormap
+                # norm = colors.LogNorm(vmin=np.abs(Zxx).min(), vmax=np.abs(Zxx).max())
+                # Plot the spectrogram with the logarithmic norm
+                # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), norm=norm)
+                cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
                 # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
                 axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
                 axs[idx, sideidx].set_xlabel('Time') 
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
-
                 axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
+                # Add a colorbar
+                cbar = plt.colorbar(cmap, ax=axs[idx, sideidx])
+                cbar.set_label('Power Spectral Density')
+                if(is_logaxis): 
+                    axs[idx, sideidx].set_yscale('log')
+                    if(is_verbose): print("Setting logarithmic scale on y axis.")
 
                 if(is_overplotted == True):# overplot time domain data
                         if(is_verbose): print("Plotting time domain data on spectrogram plot.")
