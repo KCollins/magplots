@@ -546,9 +546,9 @@ def magspect(
                         # Adjust x-axis limits to match spectrogram
                         ax2.set_xlim(xlim)
                         
-                        # Hide the second y-axis labels and ticks (optional)
-                        ax2.set_ylabel('')
-                        ax2.tick_params(axis='y', which='both', labelleft=False)
+                        # # Hide the second y-axis labels and ticks (optional)
+                        ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
+                        ax2.tick_params(axis ='y', labelcolor = color)
 
                 if events is not None:
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
