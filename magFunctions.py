@@ -424,6 +424,7 @@ def magspect(
     is_verbose=False,
     is_uniform = True, 
     is_logaxis = False,
+    is_logcolor = True,
     colormap = "viridis", # matplotlib colormap
     is_overplotted = True, 
     color = "white", # default color for overplotting time domain data
@@ -443,6 +444,8 @@ def magspect(
         is_saved: Boolean for whether resulting figure is saved to /output directory.
         is_verbose: Boolean for displaying debugging text. 
         is_uniform: Boolean to pass to magdf() so that both sets of plots are the same resolution. True by default. 
+        is_logaxis: Boolean for whether the y-axis is logarithmic False by default.
+        is_logcolor: Boolean for whether colormap is logarithmic. True by default.
         colormap: matplotlib colormap name. Viridis by default.
         is_overplotted: Time domain plot is overlaid on spectrogram plot. True by default.
         color: Color for overplotting time domain data. White by default.
@@ -507,12 +510,20 @@ def magspect(
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
 
                 axs[idx, sideidx].grid(False)
-                # Create a logarithmic norm for the colormap
-                # norm = colors.LogNorm(vmin=np.abs(Zxx).min(), vmax=np.abs(Zxx).max())
-                # Plot the spectrogram with the logarithmic norm
-                # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), norm=norm)
-                cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
-                # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
+                if is_logcolor:
+                    # Create a logarithmic norm for the colormap
+                    vmin=np.abs(Zxx).min()
+                    vmax=np.abs(Zxx).max()
+                    if(is_verbose): print(vmin, vmax)
+                    if(vmin == 0): 
+                        vmin = .00001
+                        if(is_verbose): print("Adjusting vmin.")
+                    norm = colors.LogNorm(vmin=vmin, vmax=vmax)
+                    # Plot the spectrogram with the logarithmic norm
+                    cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), norm=norm, cmap = colormap)
+                else:
+                    cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
+                    # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
                 axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
                 axs[idx, sideidx].set_xlabel('Time') 
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
