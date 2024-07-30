@@ -427,6 +427,8 @@ def magspect(
     is_logcolor = True,
     colormap = "viridis", # matplotlib colormap
     is_overplotted = True, 
+    is_autoscaled = False, 
+    ylim = [-100, 100],
     color = "white", # default color for overplotting time domain data
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
@@ -448,6 +450,8 @@ def magspect(
         is_logcolor: Boolean for whether colormap is logarithmic. True by default.
         colormap: matplotlib colormap name. Viridis by default.
         is_overplotted: Time domain plot is overlaid on spectrogram plot. True by default.
+        is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
+        ylim: y-axis limits for time domain plot, in nanotesla above and below mean. [-100, 100] by default.
         color: Color for overplotting time domain data. White by default.
         events: List of datetimes for events marked on figure. Empty by default.
         event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
@@ -524,7 +528,7 @@ def magspect(
                 else:
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
                     # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
-                axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
+                axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits for spectrogram
                 axs[idx, sideidx].set_xlabel('Time') 
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
                 axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
@@ -545,8 +549,17 @@ def magspect(
                         
                         # Adjust x-axis limits to match spectrogram
                         ax2.set_xlim(xlim)
-                        
-                        # # Hide the second y-axis labels and ticks (optional)
+
+                        if(~is_autoscaled):
+                            # Adjust y-axis limits around mean:
+                            median = np.median(y)
+                            if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                            ylims = [foo+median for foo in ylim]
+                            if(is_verbose): print(ylims)
+                            ax2.set_ylim(ylims)
+                            
+                        # y-axis labels and ticks 
+                        if(is_verbose): print('Setting y-axis color for time domain plot.')
                         ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
                         ax2.tick_params(axis ='y', labelcolor = color)
 
