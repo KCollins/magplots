@@ -315,6 +315,8 @@ def magfig(
     is_displayed = False,
     is_titled = True, 
     is_saved = False, 
+    is_autoscaled = False, 
+    ylim = [-150, 150],
     is_verbose = False,
     events=None, event_fontdict = {'size':20,'weight':'bold'}
 ):
@@ -331,6 +333,9 @@ def magfig(
             is_displayed : Boolean for whether resulting figure is displayed inline. False by default.
             is_titled    : Boolean for overall plot title. True by default. 
             is_saved     : Boolean for whether resulting figure is saved to /output directory.
+            is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
+            ylim: y-axis limits for time domain plot, in nanotesla above and below median. [-150, 150] by default.
+            is_verbose   : Boolean for displaying debugging text.
             events       : List of datetimes for events marked on figure. Empty by default.
 
         Returns:
@@ -366,6 +371,15 @@ def magfig(
             color = 'tab:blue'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             axs[idx].plot(x,y, color=color)#x, y)
+
+            if(~is_autoscaled):
+                # Adjust y-axis limits around mean:
+                median = np.median(y)
+                if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                ylims = [foo+median for foo in ylim]
+                if(is_verbose): print(ylims)
+                axs[idx].set_ylim(ylims)
+            
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
             axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color = color)
             axs[idx].tick_params(axis ='y', labelcolor = color)
@@ -396,6 +410,16 @@ def magfig(
             color = 'tab:red'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             ax2.plot(x,-y, color=color)
+            
+            if(~is_autoscaled & np.isfinite(y).all()):
+                # Adjust y-axis limits around mean:
+                median = np.median(y)
+                if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                ylims = [foo+median for foo in ylim]
+                if(is_verbose): print(ylims)
+                if(~np.isfinite(ylim).any()):
+                    ax2.set_ylim(ylims)
+            
             ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
             ax2.tick_params(axis ='y', labelcolor = color)
         except Exception as e:
@@ -428,7 +452,7 @@ def magspect(
     colormap = "viridis", # matplotlib colormap
     is_overplotted = True, 
     is_autoscaled = False, 
-    ylim = [-100, 100],
+    ylim = [-150, 150],
     color = "white", # default color for overplotting time domain data
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
@@ -451,7 +475,7 @@ def magspect(
         colormap: matplotlib colormap name. Viridis by default.
         is_overplotted: Time domain plot is overlaid on spectrogram plot. True by default.
         is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
-        ylim: y-axis limits for time domain plot, in nanotesla above and below mean. [-100, 100] by default.
+        ylim: y-axis limits for time domain plot, in nanotesla above and below median. [-150, 150] by default.
         color: Color for overplotting time domain data. White by default.
         events: List of datetimes for events marked on figure. Empty by default.
         event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
