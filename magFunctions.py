@@ -257,6 +257,7 @@ def magdf(
         if(is_pivoted): fname = fname + 'pivoted_'
         if(is_uniform): fname = fname + 'uniform'
         fname = fname + '.csv'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             if(is_verbose): print('Looks like ' + fname + ' has already been generated. Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
@@ -344,6 +345,7 @@ def magfig(
     
     if is_saved:
         fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
             return 
@@ -488,6 +490,7 @@ def magspect(
         print("Warning: Scaling will not work correctly without uniform sampling.")
     if is_saved:
         fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
             return
@@ -608,6 +611,7 @@ def magspect(
     fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter), fontsize=30)  # Title the plot...
     if is_saved:
         fname = 'output/PowerSpectrum_' + str(start) + ' to ' + str(end) + '_' + str(parameter) + '.png'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         print("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
@@ -837,6 +841,7 @@ def wavefig(
 
     if is_saved:
         fname = f"output/WavePower_{start}_to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if is_verbose:
             print(f"Saving figure: {fname}")
         plt.savefig(fname)
