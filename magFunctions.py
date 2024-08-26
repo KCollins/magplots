@@ -257,6 +257,7 @@ def magdf(
         if(is_pivoted): fname = fname + 'pivoted_'
         if(is_uniform): fname = fname + 'uniform'
         fname = fname + '.csv'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             if(is_verbose): print('Looks like ' + fname + ' has already been generated. Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
@@ -315,6 +316,8 @@ def magfig(
     is_displayed = False,
     is_titled = True, 
     is_saved = False, 
+    is_autoscaled = False, 
+    ylim = [-150, 150],
     is_verbose = False,
     events=None, event_fontdict = {'size':20,'weight':'bold'}
 ):
@@ -331,6 +334,9 @@ def magfig(
             is_displayed : Boolean for whether resulting figure is displayed inline. False by default.
             is_titled    : Boolean for overall plot title. True by default. 
             is_saved     : Boolean for whether resulting figure is saved to /output directory.
+            is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
+            ylim: y-axis limits for time domain plot, in nanotesla above and below median. [-150, 150] by default.
+            is_verbose   : Boolean for displaying debugging text.
             events       : List of datetimes for events marked on figure. Empty by default.
 
         Returns:
@@ -339,6 +345,7 @@ def magfig(
     
     if is_saved:
         fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
             return 
@@ -366,6 +373,15 @@ def magfig(
             color = 'tab:blue'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             axs[idx].plot(x,y, color=color)#x, y)
+
+            if(~is_autoscaled):
+                # Adjust y-axis limits around mean:
+                median = np.median(y)
+                if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                ylims = [foo+median for foo in ylim]
+                if(is_verbose): print(ylims)
+                axs[idx].set_ylim(ylims)
+            
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
             axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color = color)
             axs[idx].tick_params(axis ='y', labelcolor = color)
@@ -396,6 +412,16 @@ def magfig(
             color = 'tab:red'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             ax2.plot(x,-y, color=color)
+            
+            if(~is_autoscaled & np.isfinite(y).all()):
+                # Adjust y-axis limits around mean:
+                median = np.median(y)
+                if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                ylims = [foo+median for foo in ylim]
+                if(is_verbose): print(ylims)
+                if(~np.isfinite(ylim).any()):
+                    ax2.set_ylim(ylims)
+            
             ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
             ax2.tick_params(axis ='y', labelcolor = color)
         except Exception as e:
@@ -427,6 +453,8 @@ def magspect(
     is_logcolor = True,
     colormap = "viridis", # matplotlib colormap
     is_overplotted = True, 
+    is_autoscaled = False, 
+    ylim = [-150, 150],
     color = "white", # default color for overplotting time domain data
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
@@ -448,6 +476,8 @@ def magspect(
         is_logcolor: Boolean for whether colormap is logarithmic. True by default.
         colormap: matplotlib colormap name. Viridis by default.
         is_overplotted: Time domain plot is overlaid on spectrogram plot. True by default.
+        is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
+        ylim: y-axis limits for time domain plot, in nanotesla above and below median. [-150, 150] by default.
         color: Color for overplotting time domain data. White by default.
         events: List of datetimes for events marked on figure. Empty by default.
         event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
@@ -460,6 +490,7 @@ def magspect(
         print("Warning: Scaling will not work correctly without uniform sampling.")
     if is_saved:
         fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
             return
@@ -524,7 +555,7 @@ def magspect(
                 else:
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
                     # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
-                axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits
+                axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits for spectrogram
                 axs[idx, sideidx].set_xlabel('Time') 
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
                 axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
@@ -545,10 +576,19 @@ def magspect(
                         
                         # Adjust x-axis limits to match spectrogram
                         ax2.set_xlim(xlim)
-                        
-                        # Hide the second y-axis labels and ticks (optional)
-                        ax2.set_ylabel('')
-                        ax2.tick_params(axis='y', which='both', labelleft=False)
+
+                        if(~is_autoscaled):
+                            # Adjust y-axis limits around mean:
+                            median = np.median(y)
+                            if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                            ylims = [foo+median for foo in ylim]
+                            if(is_verbose): print(ylims)
+                            ax2.set_ylim(ylims)
+                            
+                        # y-axis labels and ticks 
+                        if(is_verbose): print('Setting y-axis color for time domain plot.')
+                        ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
+                        ax2.tick_params(axis ='y', labelcolor = color)
 
                 if events is not None:
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
@@ -571,6 +611,7 @@ def magspect(
     fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter), fontsize=30)  # Title the plot...
     if is_saved:
         fname = 'output/PowerSpectrum_' + str(start) + ' to ' + str(end) + '_' + str(parameter) + '.png'
+        fname = fname.replace(":", "") # Remove colons from timestamps
         print("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
@@ -800,6 +841,7 @@ def wavefig(
 
     if is_saved:
         fname = f"output/WavePower_{start}_to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
+        fname = fname.replace(":", "") # Remove colons from timestamps
         if is_verbose:
             print(f"Saving figure: {fname}")
         plt.savefig(fname)
