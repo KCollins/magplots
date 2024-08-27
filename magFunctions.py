@@ -316,6 +316,7 @@ def magfig(
     is_displayed = False,
     is_titled = True, 
     is_saved = False, 
+    fstem = "",
     is_autoscaled = False, 
     ylim = [-150, 150],
     is_verbose = False,
@@ -334,6 +335,7 @@ def magfig(
             is_displayed : Boolean for whether resulting figure is displayed inline. False by default.
             is_titled    : Boolean for overall plot title. True by default. 
             is_saved     : Boolean for whether resulting figure is saved to /output directory.
+            fstem        : String for filename prefix. Empty by default.
             is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
             ylim: y-axis limits for time domain plot, in nanotesla above and below median. [-150, 150] by default.
             is_verbose   : Boolean for displaying debugging text.
@@ -344,7 +346,7 @@ def magfig(
     """
     
     if is_saved:
-        fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
+        fname = 'output/'+ fstem +str(start) + '_' +  str(parameter) + '.png'
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
@@ -447,6 +449,7 @@ def magspect(
     is_detrended = True,
     is_displayed=False,
     is_saved=True,
+    fstem = "",
     is_verbose=False,
     is_uniform = True, 
     is_logaxis = False,
@@ -470,6 +473,7 @@ def magspect(
         maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
         is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
         is_saved: Boolean for whether resulting figure is saved to /output directory.
+        fstem: String for filename prefix. Empty by default.
         is_verbose: Boolean for displaying debugging text. 
         is_uniform: Boolean to pass to magdf() so that both sets of plots are the same resolution. True by default. 
         is_logaxis: Boolean for whether the y-axis is logarithmic False by default.
@@ -489,7 +493,7 @@ def magspect(
     if is_uniform == False:
         print("Warning: Scaling will not work correctly without uniform sampling.")
     if is_saved:
-        fname = 'output/PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
+        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
@@ -610,7 +614,7 @@ def magspect(
 
     fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter), fontsize=30)  # Title the plot...
     if is_saved:
-        fname = 'output/PowerSpectrum_' + str(start) + ' to ' + str(end) + '_' + str(parameter) + '.png'
+        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' + str(end) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "") # Remove colons from timestamps
         print("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
@@ -705,6 +709,7 @@ def wavefig(
     is_detrended = True,
     is_displayed=True,
     is_saved=False,
+    fstem = "",
     is_data_saved=False,
     is_verbose=False,
 ):
@@ -732,6 +737,7 @@ def wavefig(
                     False by default.
         is_saved  : Boolean for whether resulting figure is saved to /output
                     directory.
+        fstem        : String for filename prefix. Empty by default.
         is_data_saved  : Boolean for whether dataframe of wave power calculation
                     resusts is saved to /output directory.
         is_verbose  : Boolean for whether debugging text is printed.
@@ -840,7 +846,7 @@ def wavefig(
         plt.show()
 
     if is_saved:
-        fname = f"output/WavePower_{start}_to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
+        fname = "output/" + fstem +f"WavePower_{start}_to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
         fname = fname.replace(":", "") # Remove colons from timestamps
         if is_verbose:
             print(f"Saving figure: {fname}")
@@ -861,6 +867,7 @@ def magall(
     is_detrended = True, 
     is_displayed=False,
     is_saved=True,
+    fstem = "",
     is_verbose=False,
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
@@ -880,6 +887,7 @@ def magall(
         is_detrended  : Boolean for whether median is subtracted from data. True by default.
         is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
         is_saved: Boolean for whether resulting figure is saved to /output directory.
+        fstem: String for filename prefix. Empty by default.
         events: List of datetimes for events marked on figure. Empty by default.
         event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
         myFmt: Date formatter. By default: mdates.DateFormatter('%H:%M')
@@ -895,11 +903,11 @@ def magall(
         if(is_verbose): print('Saving dataframe.')
         magdf(start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_saved = is_saved, is_verbose = is_verbose)
         if(is_verbose): print('Saving time-domain plot.')
-        magfig(parameter=parameter, start=start, end=end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, events = events)
+        magfig(parameter=parameter, start=start, end=end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, fstem = fstem, events = events)
         if(is_verbose): print('Saving spectrogram plot.')
-        magspect(parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_verbose = is_verbose, is_saved = is_saved, 
+        magspect(parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_verbose = is_verbose, is_saved = is_saved, fstem = fstem,
                  # events = events, 
                  event_fontdict = event_fontdict, myFmt = myFmt)
         if(is_verbose): print('Generating wave power plot.')
-        wavefig(stations = stations, parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, f_lower = f_lower, f_upper = f_upper, is_maglist_only = is_maglist_only,  is_displayed = is_displayed, is_saved = is_saved, is_verbose = is_verbose)
+        wavefig(stations = stations, parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, f_lower = f_lower, f_upper = f_upper, is_maglist_only = is_maglist_only,  is_displayed = is_displayed, is_saved = is_saved, fstem = fstem, is_verbose = is_verbose)
                       
