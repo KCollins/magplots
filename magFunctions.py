@@ -222,8 +222,8 @@ def magfetch(
 def magdf(
     start = datetime.datetime(2016, 1, 25, 0, 0, 0), 
     end = datetime.datetime(2016, 1, 26, 0, 0, 0), 
-    maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic magnetometers
-    maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic magnetometers
+    maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic mags
+    maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic mags
     is_detrended = True, 
     is_pivoted   = False, 
     is_uniform = False, 
@@ -260,13 +260,16 @@ def magdf(
 
     d_i = dict((v, k) for k, v in d.items()) # inverted mapping for col renaming later
     if is_saved:
-        fname = 'output/' +str(start) + '_to_' + str(end) + '_'  
-        if(is_pivoted): fname = fname + 'pivoted_'
-        if(is_uniform): fname = fname + 'uniform'
+        fname = 'output/' +str(start) + '_to_' + str(end) + '_'
+        if is_pivoted:
+            fname = fname + 'pivoted_'
+        if is_uniform:
+            fname = fname + 'uniform'
         fname = fname + '.csv'
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
-            if(is_verbose): print('Looks like ' + fname + ' has already been generated. Pulling data...')
+            if is_verbose:
+                print('Looks like ' + fname + ' has already been generated. Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
     UT = pd.date_range(start, end, freq ='s')   # preallocate time range
     full_df = pd.DataFrame(UT, columns=['UT'])   # preallocate dataframe
@@ -274,7 +277,8 @@ def magdf(
     full_df['Magnetometer'] = ""
     for mags in [maglist_a, maglist_b]:
         for idx, magname in enumerate(mags):   # For each magnetometer, pull data and merge into full_df:
-            if(is_verbose): print('Pulling data for magnetometer: ' + magname.upper())
+            if is_verbose:
+                print('Pulling data for magnetometer: ' + magname.upper())
             try:
                 df = magfetch(start, end, magname, is_detrended = is_detrended)
                 df = pd.DataFrame.from_dict(df)
@@ -385,7 +389,6 @@ def magfig(
         is_saved=is_saved,
         is_verbose=is_verbose
     )
-    
 
     for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
         print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
@@ -403,7 +406,7 @@ def magfig(
                 if is_verbose:
                     print('Adjusting y-axis limits. Median: ' + str(median))
                 ylims = [foo+median for foo in ylim]
-                if(is_verbose):
+                if is_verbose:
                     print(ylims)
                 axs[idx].set_ylim(ylims)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
@@ -424,7 +427,6 @@ def magfig(
                                 rotation=90,fontdict=event_fontdict,color=evt_color,
                                 va='bottom',ha='right')
 
-
             #  Corresponding Antarctic mag data on same plot...
             magname = maglist_b[idx]
             ax2 = axs[idx].twinx()
@@ -436,7 +438,7 @@ def magfig(
             color = 'tab:red'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             ax2.plot(x,-y, color=color)
-            
+
             if(~is_autoscaled & np.isfinite(y).all()):
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
@@ -445,7 +447,7 @@ def magfig(
                 if(is_verbose): print(ylims)
                 if(~np.isfinite(ylim).any()):
                     ax2.set_ylim(ylims)
-            
+
             ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
             ax2.tick_params(axis ='y', labelcolor = color)
         except Exception as e:
@@ -458,10 +460,10 @@ def magfig(
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
         return fig # TODO: Figure out how to suppress output here
-        
 
-###############################################################################################################################  
-   
+
+###############################################################################
+
 def magspect(
     parameter='Bx',
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
@@ -489,9 +491,11 @@ def magspect(
     Function to create power plots for conjugate magnetometers.
 
     Arguments:
-        parameter: The parameter of interest - Bx, By, or Bz. North/South, East/West, and vertical, respectively.
+        parameter: The parameter of interest - Bx, By, or Bz. North/South,
+            East/West, and vertical, respectively.
         start, end: datetimes of the start and end of plots
-        maglist_a: List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+        maglist_a: List of Arctic magnetometers.
+            Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
         maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
         is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
         is_saved: Boolean for whether resulting figure is saved to /output directory.
@@ -533,9 +537,10 @@ def magspect(
                  is_uniform = is_uniform,
                  is_saved=is_saved,
                  is_verbose=is_verbose)
-    if(is_verbose): print(all_the_data.head(10))
+    if(is_verbose): 
+        print(all_the_data.head(10))
     # assert all_the_data.shape[1] == 5
-    
+
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
         for idx, magname in enumerate(maglist):
             print('Plotting data for ' + side + ' magnetometer #' + str(idx + 1) + ': ' + magname.upper())
@@ -556,10 +561,9 @@ def magspect(
 
                 # sampling rate in units of [s]
                 rate = 10
-                
                 # sample frequency in units of [1/s]
                 fs = 1/rate #if side == 'Arctic' else 1
-            
+
                 nperseg = 1800//rate #if side == 'Arctic' else 1800
                 noverlap = 1200//rate #if side == 'Arctic' else 1200
 
@@ -582,8 +586,8 @@ def magspect(
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
                     # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
                 axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits for spectrogram
-                axs[idx, sideidx].set_xlabel('Time') 
-                axs[idx, sideidx].set_ylabel('Frequency (Hz)') 
+                axs[idx, sideidx].set_xlabel('Time')
+                axs[idx, sideidx].set_ylabel('Frequency (Hz)')
                 axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
                 # Add a colorbar
                 cbar = plt.colorbar(cmap, ax=axs[idx, sideidx])
@@ -596,10 +600,10 @@ def magspect(
                         if(is_verbose): print("Plotting time domain data on spectrogram plot.")
                         # Create a new twin axis for the time domain plot
                         ax2 = axs[idx, sideidx].twinx()
-                        
+
                         # Plot the time domain data on the twin axis
                         ax2.plot(x, y, color=color, alpha=0.7, label=parameter)  # Adjust color and label as needed
-                        
+
                         # Adjust x-axis limits to match spectrogram
                         ax2.set_xlim(xlim)
 
@@ -610,8 +614,8 @@ def magspect(
                             ylims = [foo+median for foo in ylim]
                             if(is_verbose): print(ylims)
                             ax2.set_ylim(ylims)
-                            
-                        # y-axis labels and ticks 
+
+                        # y-axis labels and ticks
                         if(is_verbose): print('Setting y-axis color for time domain plot.')
                         ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
                         ax2.tick_params(axis ='y', labelcolor = color)
@@ -643,17 +647,17 @@ def magspect(
     if is_displayed:
         return fig
 
-############################################################################################################################### 
+###############################################################################
 def wavepwr(station_id, 
             parameter,         # Bx, By or Bz
             start, 
             end, 
-            f_lower = 1.667,        # frequency threshold in mHz (600 secs => 1.667 mHz)
-            f_upper = 6.667,        # frequency threshold in mHz (150 secs => 6.667 mHz)
+            f_lower = 1.667,    # freq threshold in mHz (600 secs => 1.667 mHz)
+            f_upper = 6.667,    # freq threshold in mHz (150 secs => 6.667 mHz)
             is_saved = False,
             is_verbose = False,
             is_detrended = True
-           ):
+            ):
     """
          Function to determine Pc5 (by default) wave power for a given magnetometer, parameter and time frame.
 
@@ -663,11 +667,11 @@ def wavepwr(station_id,
                start, end      : datetimes of interval
                f_lower, f_upper : Range of frequencies of interest in mHz.
                is_saved       : Boolean for whether loaded data is saved to /output directory.
-               is_verbose      : Print details of calculation. False by default. 
+               is_verbose      : Print details of calculation. False by default
                is_detrended  : Boolean for whether median is subtracted from data. True by default.
 
         Returns:
-               pwr        : Calculated wave power in range of interest. 
+               pwr        : Calculated wave power in range of interest.
     """
     magname = station_id.lower()
 
@@ -680,7 +684,7 @@ def wavepwr(station_id,
         is_saved=is_saved,
         is_verbose=is_verbose
     )
-    
+
     win = 0 # preallocate
     # print(magname)
     try:
@@ -688,8 +692,6 @@ def wavepwr(station_id,
         data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
         x =data['UT']
         y =data[parameter]
-
-
         y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
         y = fill_nan(y)
         y = y - np.nanmean(y)  # Detrend
@@ -715,9 +717,9 @@ def wavepwr(station_id,
         print(e)
         if(is_verbose): print('Window length: ' + str(len(win)) +'\n Signal length: ' + str(len(y))) # usually this is the issue.
         return 'Error'
-    
-    
-############################################################################################################################### 
+
+
+###############################################################################
 def wavefig(
     stations="",  # dataframe
     parameter="Bx",
@@ -753,7 +755,7 @@ def wavefig(
         f_lower, f_upper : Range of frequencies of interest in mHz.
         is_maglist_only : Boolean for whether only maglist_a and maglist_b stations
                     are included from the complete station list.
-        is_detrended  : Boolean for whether median is subtracted from data. 
+        is_detrended  : Boolean for whether median is subtracted from data.
                     True by default.
         is_displayed  : Boolean for whether resulting figure is displayed inline.
                     False by default.
@@ -802,10 +804,9 @@ def wavefig(
     )
 
     stations["ABSLAT"] = abs(stations.AACGMLAT)
-    
+
     # Create figure
     fig, ax = plt.subplots(figsize=(12, 6))
-
 
     # Plot both Arctic and Antarctic stations on the same plot
     for hemisphere, color in zip(["Arctic", "Antarctic"], ["red", "blue"]):
@@ -859,7 +860,6 @@ def wavefig(
                 color=color,  # Match label color to line color
             )
 
-
     # Configure plot layout
     fig.tight_layout()
 
@@ -876,8 +876,8 @@ def wavefig(
 
     return fig
 
-    
-# ############################################################################################################################### 
+
+# ###############################################################################################################################
 
 def magall(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
