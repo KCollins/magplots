@@ -1,4 +1,4 @@
-# functions for visualization of magnetometer data. 
+# functions for visualization of magnetometer data.
 
 # Importing packages:
 # For fill_nan:
@@ -39,7 +39,7 @@ import plotly.express as px
 # For spectrograms:
 import matplotlib.colors as colors
 
-############################################################################################################################### 
+###############################################################################
 
 # #  FILL_NAN: Function to eliminate NaN values from a 1D numpy array.
 
@@ -53,7 +53,7 @@ def fill_nan(y):
         Returns:
             Same thing; no NaNs.
     """
-    
+
     # Fit a linear regression to the non-nan y values
 
     # Create X matrix for linreg with an intercept and an index
@@ -67,14 +67,14 @@ def fill_nan(y):
     # beta = np.linalg.lstsq(X_fit.T, y_fit)[0]
     beta = np.linalg.lstsq(X_fit.T, y_fit, rcond=-1)[0]
 
-
     # Fill in all the nan values using the predicted coefficients
     y.flat[np.isnan(y)] = np.dot(X[:, np.isnan(y)].T, beta)
     return y
 
-############################################################################################################################### 
+###############################################################################
 
-# Function to reject outliers. We'll need this to eliminate power cycling artifacts in the magnetometer plots.
+# Function to reject outliers. We'll need this to eliminate power cycling 
+# artifacts in the magnetometer plots.
 def reject_outliers(y):   # y is the data in a 1D numpy array
     """
         Function to reject outliers from a 1D dataset.
@@ -89,7 +89,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
     sd = np.std(y)
     return np.where((mean - 3 * sd < y) & (y < mean + 5 * sd), y, np.nan)
 
-############################################################################################################################### 
+###############################################################################
 
 def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbose=False, is_url_printed=False):
     """
@@ -97,24 +97,23 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
 
     Args:
         start (datetime.datetime): The start date of the data to be fetched.
-        end (datetime.datetime): The end date of the data to be fetched.
-        magname (str): The name of the magnetometer station.
-        tgopw (str): Password for Tromsø Geophysical Observatory.
-        resolution (str): String for data resolution; e.g., '10sec'; default '1sec'
-        is_verbose   : Boolean for whether debugging text is printed.
-        is_url_printed: Boolean for whether URL link to TGO is printed in debugging text.
+        end (datetime.datetime)  : The end date of the data to be fetched.
+        magname (str)            : The name of the magnetometer station.
+        tgopw (str)              : Password for Tromsø Geophysical Observatory.
+        resolution (str)         : String for data resolution; e.g., '10sec';
+                                    default '1sec'
+        is_verbose               : Boolean for whether debugging text is printed
+        is_url_printed           : Boolean for whether URL link to TGO is 
+                                    printed in debugging text.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame containing the fetched data.
     """
     if(tgopw == ''):
         print("No password given; cannot pull data from Tromsø Geophysical Observatory. Save a password locally in tgopw.txt.")
-    
     df = pd.DataFrame()
-    
     # Magnetometer parameter dict so that we don't have to type the full string:
     tgo_dict = {'bfe':'bfe6d', 'roe':'roe1d', 'nrd':'nrd1d', 'thl':'thl6d', 'svs':'svs1d', 'kuv':'kuv1d', 'upn':'upn1d', 'dmh':'dmh1d', 'umq':'umq1d', 'atu':'atu1d', 'gdh': 'gdh4d', 'stf': 'stf1d', 'skt': 'skt1d', 'ghb':'ghb1d', 'fhb':'fhb1d', 'naq':'naq4d', 'tdc':'tdc4d', 'hov':'hov1d', 'sum':'sum1d'}
-    
     # Loop over each day from start to end
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
@@ -138,7 +137,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
         'MAGNETIC_EAST_-_E': df['MAGNETIC_EAST_-_E'].to_numpy(),
         'VERTICAL_DOWN_-_Z': df['VERTICAL_DOWN_-_Z'].to_numpy()
     }
-    
+
     # Convert 'UT' column to datetime64[ns] array
     data['UT'] = pd.to_datetime(data['UT'], format='%Y-%m-%dT%H:%M:%S.%f')
 
@@ -147,7 +146,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
 
     # Convert 'UT' column to datetime objects
     data['UT'] = data['UT'].to_pydatetime()
-    
+
     if(data['MAGNETIC_NORTH_-_H'][1] == 999.9999):
         print("WARNING: Data for " + magname.upper() + " on " + str(start) + " may not be available.\n  Check your parameters and verify magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html.")
     # print(type(df))
@@ -216,7 +215,7 @@ def magfetch(
         data['VERTICAL_DOWN_-_Z'] - np.median(data['VERTICAL_DOWN_-_Z'])
     return data
 
-############################################################################################################################### 
+###############################################################################
 
 # MAGDF Function to create multi-indexable dataframe of all mag parameters for a given period of time. 
 
@@ -230,25 +229,33 @@ def magdf(
     is_uniform = False, 
     is_saved = False, 
     is_verbose = False,
-    ):
+     ):
     """
        Function to create power plots for conjugate magnetometers.
 
         Arguments:
             start, end   : datetimes of the start and end of plots
-            maglist_a     : List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-            maglist_b     : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-            is_detrended  : Boolean for whether median is subtracted from data. True by default.
-            is_pivoted    : Boolean for whether returned dataframe is organized by timestamp. False by default.
-            is_uniform    : Boolean for whether the resolution is made uniform (i.e., downsampled to slowest cadence.) True by default.
-                          (Time series plots can be native resolution for both sets, but spectrogram plots should be uniform.)
-            is_saved       : Boolean for whether resulting dataframe is saved to /output directory.
-            is_verbose    : Boolean for whether debugging text is printed. 
+            maglist_a     : List of Arctic magnetometers. Default:
+                            ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+            maglist_b     : Corresponding list of Antarctic magnetometers.
+                            Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+            is_detrended  : Boolean for whether median is subtracted from data.
+                            True by default.
+            is_pivoted    : Boolean for whether returned dataframe is organized
+                            by timestamp. False by default.
+            is_uniform    : Boolean for whether the resolution is made uniform
+                            (i.e., downsampled to slowest cadence.)
+                            True by default.
+                            Time series plots can be native resolution for
+                            both sets, but spectrogram plots should be uniform.
+            is_saved       : Boolean for whether resulting dataframe is saved
+                             to /output directory.
+            is_verbose    : Boolean for whether debugging text is printed.
 
         Returns:
             Dataframe of Bx, By, Bz for each magnetometer in list.
     """
-    # Magnetometer parameter dict so that we don't have to type the full string:
+    # Magnetometer parameter dict so we don't have to type the full string:
     d = {'Bx': 'MAGNETIC_NORTH_-_H', 'By': 'MAGNETIC_EAST_-_E', 'Bz': 'VERTICAL_DOWN_-_Z'}
 
     d_i = dict((v, k) for k, v in d.items()) # inverted mapping for col renaming later
@@ -268,7 +275,7 @@ def magdf(
     for mags in [maglist_a, maglist_b]:
         for idx, magname in enumerate(mags):   # For each magnetometer, pull data and merge into full_df:
             if(is_verbose): print('Pulling data for magnetometer: ' + magname.upper())
-            try:                
+            try:
                 df = magfetch(start, end, magname, is_detrended = is_detrended)
                 df = pd.DataFrame.from_dict(df)
                 df.rename(columns=d_i, inplace=True)    # mnemonic column names
@@ -280,71 +287,85 @@ def magdf(
             except Exception as e:
                 print(e)
                 continue
-    full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
-    full_df = full_df[full_df['Magnetometer'] != ''] # drop empty rows
+    full_df['UT'] = full_df['UT'].astype('datetime64[s]')# enforce 1s precision
+    full_df = full_df[full_df['Magnetometer'] != '']# drop empty rows
     full_df = full_df.drop(['UT_1'], # drop extraneous columns
                            axis=1,
                            errors='ignore' # some stations don't seem to have this columm # TODO why is this
                            )
-    df_pivoted = full_df.pivot(index='UT', columns='Magnetometer', values=['Bx', 'By', 'Bz'])
+    df_pivoted = full_df.pivot(index='UT', columns='Magnetometer', 
+                               values=['Bx', 'By', 'Bz'])
     if is_pivoted:
-        if(is_verbose): print("Pivoting to index by time.")
+        if is_verbose:
+            print("Pivoting to index by time.")
         full_df = df_pivoted
     if is_uniform:
-        if(is_verbose): print('Discarding NaN rows.')
+        if is_verbose:
+            print('Discarding NaN rows.')
         df_pivoted = df_pivoted.dropna()
-        if(is_pivoted == False):
+        if not is_pivoted:
             print('Returning to original format.')
             full_df = df_pivoted.unstack(level=1).unstack().unstack().transpose()
             full_df = full_df.reset_index()
-        if(is_verbose): print('Dataframe shape: ' + str(full_df.shape))
+        if is_verbose:
+            print('Dataframe shape: ' + str(full_df.shape))
     if is_saved:
-        if(is_verbose): print('Saving as a CSV.')
+        if is_verbose:
+            print('Saving as a CSV.')
         full_df.to_csv(fname, index=False)
     # print(full_df)
-    return full_df 
+    return full_df
 
-############################################################################################################################### 
+###############################################################################
 
 def magfig(
     parameter = 'Bx',
-    start = datetime.datetime(2016, 1, 25, 0, 0, 0), 
-    end = datetime.datetime(2016, 1, 26, 0, 0, 0), 
+    start = datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end = datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
-    is_detrended = True, 
+    is_detrended = True,
     is_displayed = False,
-    is_titled = True, 
-    is_saved = False, 
+    is_titled = True,
+    is_saved = False,
     fstem = "",
-    is_autoscaled = False, 
+    is_autoscaled = False,
     ylim = [-150, 150],
     is_verbose = False,
     events=None, event_fontdict = {'size':20,'weight':'bold'}
 ):
     """
     MAGFIG
-        Function to create a stackplot for a given set of conjugate magnetometers over a given length of time. 
+        Function to create a stackplot for a given set of conjugate
+        magnetometers over a given length of time.
 
         Arguments:
-            parameter    : The parameter of interest - Bx, By, or Bz. North/South, East/West, and vertical, respectively.
+            parameter    : The parameter of interest - Bx, By, or Bz.
+                            North/South, East/West, and vertical, respectively.
             start, end   : datetimes of the start and end of plots
-            maglist_a    : List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-            maglist_b    : Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-            is_detrended  : Boolean for whether median is subtracted from data. True by default.
-            is_displayed : Boolean for whether resulting figure is displayed inline. False by default.
-            is_titled    : Boolean for overall plot title. True by default. 
-            is_saved     : Boolean for whether resulting figure is saved to /output directory.
+            maglist_a    : List of Arctic magnetometers.
+                            Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+            maglist_b    : Corresponding list of Antarctic magnetometers.
+                            Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+            is_detrended  : Boolean for whether median is subtracted from data.
+                            True by default.
+            is_displayed : Boolean for whether resulting figure is displayed
+                            inline. False by default.
+            is_titled    : Boolean for overall plot title. True by default.
+            is_saved     : Boolean for whether resulting figure is saved to
+                            /output directory.
             fstem        : String for filename prefix. Empty by default.
-            is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
-            ylim: y-axis limits for time domain plot, in nanotesla above and below median. [-150, 150] by default.
+            is_autoscaled: Boolean for whether time domain plot is autoscaled.
+                            False by default.
+            ylim         : y-axis limits for time domain plot, in nanotesla
+                            above and below median. [-150, 150] by default.
             is_verbose   : Boolean for displaying debugging text.
-            events       : List of datetimes for events marked on figure. Empty by default.
+            events       : List of datetimes for events marked on figure.
+                            Empty by default.
 
         Returns:
-            
     """
-    
+
     if is_saved:
         fname = 'output/'+ fstem +str(start) + '_' +  str(parameter) + '.png'
         fname = fname.replace(":", "") # Remove colons from timestamps
@@ -368,7 +389,7 @@ def magfig(
 
     for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
         print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
-        try:             
+        try:
             data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
             x =data['UT']
             y =data[parameter]
@@ -376,14 +397,15 @@ def magfig(
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             axs[idx].plot(x,y, color=color)#x, y)
 
-            if(~is_autoscaled):
+            if ~is_autoscaled:
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                if is_verbose:
+                    print('Adjusting y-axis limits. Median: ' + str(median))
                 ylims = [foo+median for foo in ylim]
-                if(is_verbose): print(ylims)
+                if(is_verbose):
+                    print(ylims)
                 axs[idx].set_ylim(ylims)
-            
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
             axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color = color)
             axs[idx].tick_params(axis ='y', labelcolor = color)
