@@ -110,7 +110,8 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
 
 ###############################################################################
 
-def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbose=False, is_url_printed=False):
+def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
+    is_verbose=False, is_url_printed=False):
     """Pulls Tromsø Geophysical Observatory data from a RESTful API with a link
          based on the date.
 
@@ -204,21 +205,45 @@ def magfetch(
     tgopw="",
     resolution="10sec",
 ):
-    """
-    MAGFETCH
+    """Function to fetch data for a given magnetometer. Pulls from ai.cdas or
+    Tromsø Geophysical Observatory.
 
-    Function to fetch data for a given magnetometer. Pulls from ai.cdas or Tromsø Geophysical Observatory.
+    Arguments
+    ---------
+    start, end : datetime
+        Datetimes of the start and end of sampled data range.
 
-    Arguments:
-        start, end  : datetimes of the start and end of sampled data range.
-        magname     : IAGA ID for magnetometer being sampled. e.g.: 'upn'
-        is_detrended: Boolean for whether the median is subtracted out.
-        is_verbose  : Boolean for whether debugging text is printed.
-        tgopw       : Password for Tromsø Geophysical Observatory
-        resolution  : Data resolution for TGO data.
+    magname : str
+        IAGA ID for magnetometer being sampled. e.g.: 'upn'
 
-    Returns:
-        df      : pandas dataframe with columns ['UT', 'MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E', 'VERTICAL_DOWN_-_Z']
+    is_detrended : bool, optional
+        Boolean for whether the median is subtracted out.
+
+    is_verbose : bool, optional
+        Boolean for whether debugging text is printed.
+
+    tgopw : str, optional
+        Password for Tromsø Geophysical Observatory. Calls magfetchtgo().
+
+    resolution : str, optional
+        Data resolution for TGO data.
+
+    Returns
+    -------
+    df : pandas.DataFrame
+        Pandas dataframe with columns ['UT', 'MAGNETIC_NORTH_-_H',
+        'MAGNETIC_EAST_-_E', 'VERTICAL_DOWN_-_Z'].
+
+    Example Use
+    ------------
+    Generates dataframe for ATU::
+
+    magfetch(start = datetime.datetime(2018, 9, 4, 0, 0, 0),
+                end = datetime.datetime(2018, 9, 5, 0, 0, 0),
+                magname = 'atu',
+                resolution = '1sec',
+                is_verbose = True
+            )
     """
 
     if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # Northern mags for TGO data
@@ -433,6 +458,7 @@ def magfig(
                             Empty by default.
 
         Returns:
+
     """
 
     if is_saved:
