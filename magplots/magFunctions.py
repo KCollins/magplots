@@ -111,24 +111,42 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
 ###############################################################################
 
 def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbose=False, is_url_printed=False):
-    """
-    Pulls data from a RESTful API with a link based on the date.
+    """Pulls Tromsø Geophysical Observatory data from a RESTful API with a link
+         based on the date.
 
-    Args:
-        start (datetime.datetime): The start date of the data to be fetched.
-        end (datetime.datetime)  : The end date of the data to be fetched.
-        magname (str)            : The name of the magnetometer station.
-        tgopw (str)              : Password for Tromsø Geophysical Observatory.
-        resolution (str)         : String for data resolution; e.g., '10sec';
-                                    default '1sec'
-        is_verbose               : Boolean for whether debugging text is printed
-        is_url_printed           : Boolean for whether URL link to TGO is
-                                    printed in debugging text.
+    Parameters
+    ----------
+    start           : datetime.datetime
+            The start date of the data to be fetched.
+    end              : datetime.datetime
+            The end date of the data to be fetched.
+    magname          : str
+            The name of the magnetometer station.
+    tgopw            : str
+            Password for Tromsø Geophysical Observatory.
+    resolution       : str
+            String for data resolution; e.g., '10sec'; default '1sec'.
+    is_verbose      : boolean
+            If set to True/1, prints debugging text.
+    is_url_printed  : boolean
+            If set to True/1, prints URL to TGO. (Contains password.)
+    is_saved        : boolean
+            If is_saved == True, saves .gpx versions.
+                        to local output directory
 
-    Returns:
-        pandas.DataFrame: A pandas DataFrame containing the fetched data.
+    Returns
+    -------
+    df        : pandas.DataFrame
+            A pandas DataFrame containing the fetched data.
+
+    Example Use
+    ------------
+    Save the password locally in the file `tgopw.txt.`
+    Run::
+
+        magfetchtgo(is_verbose=True))
     """
-    if(tgopw == ''):
+    if tgopw == '':
         print("No password given; cannot pull data from Tromsø Geophysical Observatory. Save a password locally in tgopw.txt.")
     df = pd.DataFrame()
     # Magnetometer parameter dict so that we don't have to type the full string:
@@ -137,7 +155,8 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
         url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
-        if(is_url_printed): print(url)
+        if is_url_printed:
+                    print(url)
         # Fetch the data for the current day
         foo = pd.read_csv(url, skiprows = 6, sep=r"\s+", usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
