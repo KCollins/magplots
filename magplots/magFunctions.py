@@ -41,17 +41,26 @@ import matplotlib.colors as colors
 
 ###############################################################################
 
-# #  FILL_NAN: Function to eliminate NaN values from a 1D numpy array.
-
 def fill_nan(y):
-    """
-        Fit a linear regression to the non-nan y values
+    """Fit a linear regression to the non-nan y values
 
-        Arguments:
-            y      : 1D numpy array with NaNs in it
+        Parameters
+    ----------
+    y      : np.array
+        1D numpy array with NaNs in it
 
-        Returns:
-            Same thing; no NaNs.
+    Returns
+    -------
+    y      : np.array
+        1D numpy array with no NaNs in it
+
+    Example Use
+    ------------
+    Creates a 1D array with NaNs and removes them::
+
+        y = np.array([40, 41, np.nan, 43, np.nan, 41])
+        fill_nan(y)
+
     """
 
     # Fit a linear regression to the non-nan y values
