@@ -869,7 +869,7 @@ def wavepwr(station_id,
 
         Example Use
         ------------
-        Calculate wave power in Pc5 band for selected time range.
+        Calculate wave power in Pc5 band for selected time range at PG4.
         Run::
 
             start = datetime.datetime(2019, 8, 2, 0, 0, 0)
@@ -943,37 +943,59 @@ def wavefig(
     is_data_saved=False,
     is_verbose=False,
 ):
-    """
-    WAVEFIG
+    """Function to create wave power plot for a given set of magnetometers.
 
-    Function to create wave power plot for a given set of magnetometers.
+    Arguments
+    ---------
+    stations : pandas.DataFrame, optional
+        Dataframe of stations with columns IAGA, AACGMLAT, AACGMLON. If left empty, will pull from local file stations.csv.
 
-    Arguments:
-        stations  : Dataframe of stations with columns IAGA, AACGMLAT, AACGMLON.
-                    If left empty, will pull from local file stations.csv.
-        parameter  : The parameter of interest - Bx, By, or Bz. North/South,
-                    East/West, and vertical, respectively.
-        start, end  : datetimes of the start and end of plots
-        maglist_a  : List of Arctic magnetometers. Default:
-                    ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-        maglist_b  : Corresponding list of Antarctic magnetometers. Default:
-                    ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-        f_lower, f_upper : Range of frequencies of interest in mHz.
-        is_maglist_only : Boolean for whether only maglist_a and maglist_b stations
-                    are included from the complete station list.
-        is_detrended  : Boolean for whether median is subtracted from data.
-                    True by default.
-        is_displayed  : Boolean for whether resulting figure is displayed inline.
-                    False by default.
-        is_saved  : Boolean for whether resulting figure is saved to /output
-                    directory.
-        fstem        : String for filename prefix. Empty by default.
-        is_data_saved  : Boolean for whether dataframe of wave power calculation
-                    resusts is saved to /output directory.
-        is_verbose  : Boolean for whether debugging text is printed.
+    parameter : str
+        The parameter of interest - Bx, By, or Bz. North/South, East/West, and vertical, respectively.
 
-    Returns:
-        Figure of stacked plots for date in question, with events marked.
+    start, end : datetime
+        Datetimes of the start and end of plots.
+
+    maglist_a : list, optional
+        List of Arctic magnetometers. Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+
+    maglist_b : list, optional
+        Corresponding list of Antarctic magnetometers. Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+
+    f_lower, f_upper : float
+        Range of frequencies of interest in mHz.
+
+    is_maglist_only : bool, optional
+        Boolean for whether only maglist_a and maglist_b stations are included from the complete station list.
+
+    is_detrended : bool, optional
+        Boolean for whether median is subtracted from data. Defaults to True.
+
+    is_displayed : bool, optional
+        Boolean for whether resulting figure is displayed inline. Defaults to False.
+
+    is_saved : bool, optional
+        Boolean for whether resulting figure is saved to /output directory.
+
+    fstem : str, optional
+        String for filename prefix. Empty by default.
+
+    is_data_saved : bool, optional
+        Boolean for whether dataframe of wave power calculation results is saved to /output directory.
+
+    is_verbose : bool, optional
+        Boolean for whether debugging text is printed.
+
+    Returns
+    -------
+    figure : matplotlib.figure.Figure
+        Figure showing wave power vs longitude, with Artic and Antarctic magnetometers overlaid.
+
+    Example Use
+    ------------
+    Generate wave power plot for default range::
+
+        wavefig(is_verbose = False, is_displayed = True, is_saved = True, is_data_saved = True)
     """
 
     if stations == "":
@@ -1090,17 +1112,17 @@ def magall(
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
-    f_lower = 1.667,        # frequency threshold in mHz 
+    f_lower = 1.667,        # frequency threshold in mHz
     f_upper = 6.667,     # frequency threshold in mHz
-    is_detrended = True, 
+    is_detrended = True,
     is_displayed=False,
     is_saved=True,
     fstem = "",
     is_verbose=False,
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
-    myFmt=mdates.DateFormatter('%H:%M'), 
-    stations = "", 
+    myFmt=mdates.DateFormatter('%H:%M'),
+    stations = "",
     is_maglist_only = True
 ):
     """
