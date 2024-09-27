@@ -103,7 +103,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
         resolution (str)         : String for data resolution; e.g., '10sec';
                                     default '1sec'
         is_verbose               : Boolean for whether debugging text is printed
-        is_url_printed           : Boolean for whether URL link to TGO is 
+        is_url_printed           : Boolean for whether URL link to TGO is
                                     printed in debugging text.
 
     Returns:
@@ -153,7 +153,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
     # return df
     return data
 
-############################################################################################################################### 
+###############################################################################
 def magfetch(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
@@ -279,18 +279,18 @@ def magdf(
         for idx, magname in enumerate(mags):   # For each magnetometer, pull data and merge into full_df:
             if is_verbose:
                 print('Pulling data for magnetometer: ' + magname.upper())
-            try:
-                df = magfetch(start, end, magname, is_detrended = is_detrended)
-                df = pd.DataFrame.from_dict(df)
-                df.rename(columns=d_i, inplace=True)    # mnemonic column names
+            # try:
+            df = magfetch(start, end, magname, is_detrended = is_detrended)
+            df = pd.DataFrame.from_dict(df)
+            df.rename(columns=d_i, inplace=True)    # mnemonic column names
 
-                df['Magnetometer'] = magname.upper()
-                full_df = pd.concat([full_df, df])
+            df['Magnetometer'] = magname.upper()
+            full_df = pd.concat([full_df, df])
 
                 # print(df)
-            except Exception as e:
-                print(e)
-                continue
+            # except Exception as e:
+            #     print(e)
+            #     continue
     full_df['UT'] = full_df['UT'].astype('datetime64[s]')# enforce 1s precision
     full_df = full_df[full_df['Magnetometer'] != '']# drop empty rows
     full_df = full_df.drop(['UT_1'], # drop extraneous columns
@@ -375,7 +375,7 @@ def magfig(
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
-            return 
+            return
             # raise Exception('This file has already been generated.')
     fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25), constrained_layout=True)
     print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
@@ -479,8 +479,8 @@ def magspect(
     is_logaxis = False,
     is_logcolor = True,
     colormap = "viridis", # matplotlib colormap
-    is_overplotted = True, 
-    is_autoscaled = False, 
+    is_overplotted = True,
+    is_autoscaled = False,
     ylim = [-150, 150],
     color = "white", # default color for overplotting time domain data
     events=None,
@@ -500,7 +500,7 @@ def magspect(
         is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
         is_saved: Boolean for whether resulting figure is saved to /output directory.
         fstem: String for filename prefix. Empty by default.
-        is_verbose: Boolean for displaying debugging text. 
+        is_verbose: Boolean for displaying debugging text.
         is_uniform: Boolean to pass to magdf() so that both sets of plots are the same resolution. True by default. 
         is_logaxis: Boolean for whether the y-axis is logarithmic False by default.
         is_logcolor: Boolean for whether colormap is logarithmic. True by default.
@@ -537,7 +537,7 @@ def magspect(
                  is_uniform = is_uniform,
                  is_saved=is_saved,
                  is_verbose=is_verbose)
-    if(is_verbose): 
+    if is_verbose:
         print(all_the_data.head(10))
     # assert all_the_data.shape[1] == 5
 
@@ -661,7 +661,7 @@ def wavepwr(station_id,
     """
          Function to determine Pc5 (by default) wave power for a given magnetometer, parameter and time frame.
 
-        Arguments: 
+        Arguments:
                station_id      : Station ID in lowercase, e.g., 'atu', 'pg4'
                parameter        : 'Bx', 'By' or 'Bz'
                start, end      : datetimes of interval
@@ -688,7 +688,8 @@ def wavepwr(station_id,
     win = 0 # preallocate
     # print(magname)
     try:
-        if(is_verbose): print('Checking wave power for magnetometer ' + magname.upper() + ' between ' + str(start) + ' and ' + str(end) + '.')
+        if is_verbose:
+            print('Checking wave power for magnetometer ' + magname.upper() + ' between ' + str(start) + ' and ' + str(end) + '.')
         data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
         x =data['UT']
         y =data[parameter]
@@ -710,12 +711,15 @@ def wavepwr(station_id,
         # f, Pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
         f, Pxxf = welch(datos, fs, window=win, return_onesided=True, detrend=False)
         pwr = Pxxf[3]
-        if(is_verbose): print(Pxxf[((f>=f_lower/1000) & (f_upper<=3/1000))])
-        if(is_verbose): print(magname.upper() + ': The estimated power from ' + str(f_lower) + ' mHz to '+ str(f_upper) + ' mHz is ' + str(pwr) + ' nT/Hz^(1/2)')
+        if is_verbose:
+            print(Pxxf[((f>=f_lower/1000) & (f_upper<=3/1000))])
+        if is_verbose:
+            print(magname.upper() + ': The estimated power from ' + str(f_lower) + ' mHz to '+ str(f_upper) + ' mHz is ' + str(pwr) + ' nT/Hz^(1/2)')
         return pwr
     except Exception as e:
         print(e)
-        if(is_verbose): print('Window length: ' + str(len(win)) +'\n Signal length: ' + str(len(y))) # usually this is the issue.
+        if is_verbose:
+            print('Window length: ' + str(len(win)) +'\n Signal length: ' + str(len(y))) # usually this is the issue.
         return 'Error'
 
 
@@ -877,7 +881,7 @@ def wavefig(
     return fig
 
 
-# ###############################################################################################################################
+################################################################################################################################
 
 def magall(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
@@ -903,7 +907,8 @@ def magall(
 
     Arguments:
         start, end: datetimes of the start and end of plots
-        maglist_a: List of Arctic magnetometers. Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+        maglist_a: List of Arctic magnetometers.
+                   Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
         maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
         f_lower, f_upper : Range of frequencies of interest in mHz.
         is_detrended  : Boolean for whether median is subtracted from data. True by default.
@@ -932,4 +937,3 @@ def magall(
                  event_fontdict = event_fontdict, myFmt = myFmt)
         if(is_verbose): print('Generating wave power plot.')
         wavefig(stations = stations, parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, f_lower = f_lower, f_upper = f_upper, is_maglist_only = is_maglist_only,  is_displayed = is_displayed, is_saved = is_saved, fstem = fstem, is_verbose = is_verbose)
-                      
