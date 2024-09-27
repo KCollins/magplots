@@ -1126,38 +1126,75 @@ def magall(
     is_maglist_only = True
 ):
     """
-    Function to create all plots for conjugate magnetometers in a given timespan. Generates plots for all parameters: 
-    Bx, By, and Bz: North/South, East/West, and vertical, respectively.
+    Function to create all plots for conjugate magnetometers in a given timespan. Generates plots for all parameters: Bx, By, and Bz: North/South, East/West, and vertical, respectively.
 
-    Arguments:
-        start, end: datetimes of the start and end of plots
-        maglist_a: List of Arctic magnetometers.
-                   Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-        maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-        f_lower, f_upper : Range of frequencies of interest in mHz.
-        is_detrended  : Boolean for whether median is subtracted from data. True by default.
-        is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
-        is_saved: Boolean for whether resulting figure is saved to /output directory.
-        fstem: String for filename prefix. Empty by default.
-        events: List of datetimes for events marked on figure. Empty by default.
-        event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
-        myFmt: Date formatter. By default: mdates.DateFormatter('%H:%M')
-        stations: Table of station coordinates. (Type `help(wavefig)` for more information.)
-        is_maglist_only  : Boolean for whether only maglist_a and maglist_b stations
-                           are included from the complete station list.
+    Arguments
+    ---------
+    start, end : datetime
+        Datetimes of the start and end of plots.
 
-    Returns:
+    maglist_a : list, optional
+        List of Arctic magnetometers. Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+
+    maglist_b : list, optional
+        Corresponding list of Antarctic magnetometers. Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+
+    f_lower, f_upper : float
+        Range of frequencies of interest in mHz.
+
+    is_detrended : bool, optional
+        Boolean for whether median is subtracted from data. Defaults to True.
+
+    is_displayed : bool, optional
+        Boolean for whether resulting figure is displayed inline. Defaults to False.
+
+    is_saved : bool, optional
+        Boolean for whether resulting figure is saved to /output directory.
+
+    fstem : str, optional
+        String for filename prefix. Empty by default.
+
+    events : list, optional
+        List of datetimes for events marked on figure. Empty by default.
+
+    event_fontdict : dict, optional
+        Font dict for formatting of event labels. Defaults to {'size': 20, 'weight': 'bold'}.
+
+    myFmt : matplotlib.dates.DateFormatter, optional
+        Date formatter. By default: mdates.DateFormatter('%H:%M').
+
+    stations : pandas.DataFrame, optional
+        Table of station coordinates. (Type `help(wavefig)` for more information.)
+
+    is_maglist_only : bool, optional
+        Boolean for whether only maglist_a and maglist_b stations are included from the complete station list.
+
+    Returns
+    -------
+    None
         Saves all files to output/ directory.
+
+
+    Example Use
+    ------------
+    Generate all plots for default range::
+
+        magall(is_verbose = true)
     """
     for parameter in ['Bx', 'By', 'Bz']:
-        if(is_verbose): print('Computing plots for parameter ' + parameter + '.')
-        if(is_verbose): print('Saving dataframe.')
+        if is_verbose:
+            print('Computing plots for parameter ' + parameter + '.')
+        if is_verbose:
+            print('Saving dataframe.')
         magdf(start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_saved = is_saved, is_verbose = is_verbose)
-        if(is_verbose): print('Saving time-domain plot.')
+        if is_verbose:
+            print('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, fstem = fstem, events = events)
-        if(is_verbose): print('Saving spectrogram plot.')
+        if is_verbose:
+            print('Saving spectrogram plot.')
         magspect(parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_verbose = is_verbose, is_saved = is_saved, fstem = fstem,
                  # events = events, 
                  event_fontdict = event_fontdict, myFmt = myFmt)
-        if(is_verbose): print('Generating wave power plot.')
+        if is_verbose:
+            print('Generating wave power plot.')
         wavefig(stations = stations, parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, f_lower = f_lower, f_upper = f_upper, is_maglist_only = is_maglist_only,  is_displayed = is_displayed, is_saved = is_saved, fstem = fstem, is_verbose = is_verbose)
