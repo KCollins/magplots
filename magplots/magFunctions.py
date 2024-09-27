@@ -826,61 +826,62 @@ def magspect(
         return fig
 
 ###############################################################################
-def wavepwr(station_id, 
+def wavepwr(station_id,
             parameter,         # Bx, By or Bz
-            start, 
-            end, 
+            start,
+            end,
             f_lower = 1.667,    # freq threshold in mHz (600 secs => 1.667 mHz)
             f_upper = 6.667,    # freq threshold in mHz (150 secs => 6.667 mHz)
             is_saved = False,
             is_verbose = False,
             is_detrended = True
             ):
-        """Function to determine Pc5 (by default) wave power for a given magnetometer,
-            parameter and time frame.
+    """Function to determine Pc5 (by default) wave power for a given
+        magnetometer, parameter and time frame.
 
-        Arguments
-        ---------
-        station_id : str
-            Station ID in lowercase, e.g., 'atu', 'pg4'.
+    Arguments
+    ---------
+    station_id : str
+        Station ID in lowercase, e.g., 'atu', 'pg4'.
 
-        parameter : str
-            'Bx', 'By' or 'Bz'.
+    parameter : str
+        'Bx', 'By' or 'Bz'.
 
-        start, end : datetime
-            Datetimes of interval.
+    start, end : datetime
+        Datetimes of interval.
 
-        f_lower, f_upper : float
-            Range of frequencies of interest in mHz.
+    f_lower, f_upper : float
+        Range of frequencies of interest in mHz.
 
-        is_saved : bool, optional
-            Boolean for whether loaded data is saved to /output directory. Defaults to False.
+    is_saved : bool, optional
+        Boolean for whether loaded data is saved to /output directory.
+        Defaults to False.
 
-        is_verbose : bool, optional
-            Print details of calculation. Defaults to False.
+    is_verbose : bool, optional
+        Print details of calculation. Defaults to False.
 
-        is_detrended : bool, optional
-            Boolean for whether median is subtracted from data. Defaults to True.
+    is_detrended : bool, optional
+        Boolean for whether median is subtracted from data. Defaults to True.
 
-        Returns
-        -------
-        pwr : float
-            Calculated wave power in range of interest.
+    Returns
+    -------
+    pwr : float
+        Calculated wave power in range of interest.
 
-        Example Use
-        ------------
-        Calculate wave power in Pc5 band for selected time range at PG4.
-        Run::
+    Example Use
+    ------------
+    Calculate wave power in Pc5 band for selected time range at PG4.
+    Run::
 
-            start = datetime.datetime(2019, 8, 2, 0, 0, 0)
-            end = datetime.datetime(2019, 8, 3, 0, 0, 0)
-            wavepwr('pg4', parameter = 'Bx', start = start, end = end, is_verbose=False)
-        """
+        start = datetime.datetime(2019, 8, 2, 0, 0, 0)
+        end = datetime.datetime(2019, 8, 3, 0, 0, 0)
+        wavepwr('pg4', parameter = 'Bx', start = start, end = end,is_verbose=False)
+    """
     magname = station_id.lower()
     all_the_data = magdf(
         start=start,
         end=end,
-        maglist_a=[magname], # it does not matter whether this is actually an Arctic magnetometer
+        maglist_a=[magname], # does not need to be an Arctic magnetometer
         maglist_b=[],
         is_detrended=is_detrended,
         is_saved=is_saved,
@@ -891,7 +892,9 @@ def wavepwr(station_id,
     # print(magname)
     try:
         if is_verbose:
-            print('Checking wave power for magnetometer ' + magname.upper() + ' between ' + str(start) + ' and ' + str(end) + '.')
+            print('Checking wave power for magnetometer '
+                  + magname.upper() + ' between ' + str(start) +
+                  ' and ' + str(end) + '.')
         data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
         x =data['UT']
         y =data[parameter]
