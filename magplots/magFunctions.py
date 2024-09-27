@@ -758,7 +758,8 @@ def magspect(
                             print("Adjusting vmin.")
                     norm = colors.LogNorm(vmin=vmin, vmax=vmax)
                     # Plot the spectrogram with the logarithmic norm
-                    cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), norm=norm, cmap = colormap)
+                    cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
+                            np.abs(Zxx) * np.abs(Zxx), norm=norm, cmap = colormap)
                 else:
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
                     # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
@@ -835,23 +836,47 @@ def wavepwr(station_id,
             is_verbose = False,
             is_detrended = True
             ):
-    """
-         Function to determine Pc5 (by default) wave power for a given magnetometer, parameter and time frame.
+        """Function to determine Pc5 (by default) wave power for a given magnetometer,
+            parameter and time frame.
 
-        Arguments:
-               station_id      : Station ID in lowercase, e.g., 'atu', 'pg4'
-               parameter        : 'Bx', 'By' or 'Bz'
-               start, end      : datetimes of interval
-               f_lower, f_upper : Range of frequencies of interest in mHz.
-               is_saved       : Boolean for whether loaded data is saved to /output directory.
-               is_verbose      : Print details of calculation. False by default
-               is_detrended  : Boolean for whether median is subtracted from data. True by default.
+        Arguments
+        ---------
+        station_id : str
+            Station ID in lowercase, e.g., 'atu', 'pg4'.
 
-        Returns:
-               pwr        : Calculated wave power in range of interest.
-    """
+        parameter : str
+            'Bx', 'By' or 'Bz'.
+
+        start, end : datetime
+            Datetimes of interval.
+
+        f_lower, f_upper : float
+            Range of frequencies of interest in mHz.
+
+        is_saved : bool, optional
+            Boolean for whether loaded data is saved to /output directory. Defaults to False.
+
+        is_verbose : bool, optional
+            Print details of calculation. Defaults to False.
+
+        is_detrended : bool, optional
+            Boolean for whether median is subtracted from data. Defaults to True.
+
+        Returns
+        -------
+        pwr : float
+            Calculated wave power in range of interest.
+
+        Example Use
+        ------------
+        Calculate wave power in Pc5 band for selected time range.
+        Run::
+
+            start = datetime.datetime(2019, 8, 2, 0, 0, 0)
+            end = datetime.datetime(2019, 8, 3, 0, 0, 0)
+            wavepwr('pg4', parameter = 'Bx', start = start, end = end, is_verbose=False)
+        """
     magname = station_id.lower()
-
     all_the_data = magdf(
         start=start,
         end=end,
