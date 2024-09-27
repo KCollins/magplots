@@ -8,7 +8,11 @@ A python library to pull data and make plots from ground magnetometers. Emphasis
 <!-- Click here to run example code: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/KCollins/magplots/HEAD?labpath=Examples.ipynb) -->
 
 ## Installation
+To install from pypi: 
 `pip install magplots`
+
+To install from source: 
+Clone git repo and run `python -m pip install .` from top level of directory.
 Make sure that you have a folder in your directory named `/output`. This is where plots and dataframes will be saved.
 
 ## MWE
