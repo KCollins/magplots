@@ -1,4 +1,4 @@
-# functions for visualization of magnetometer data.
+"""Functions for visualization of magnetometer data.."""
 
 # Importing packages:
 # For fill_nan:
@@ -82,7 +82,7 @@ def fill_nan(y):
 
 ###############################################################################
 
-# Function to reject outliers. We'll need this to eliminate power cycling 
+# Function to reject outliers. We'll need this to eliminate power cycling
 # artifacts in the magnetometer plots.
 def reject_outliers(y):   # y is the data in a 1D numpy array
     """Function to reject outliers from a 1D dataset.
@@ -147,7 +147,8 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
         magfetchtgo(is_verbose=True))
     """
     if tgopw == '':
-        print("No password given; cannot pull data from Tromsø Geophysical Observatory. Save a password locally in tgopw.txt.")
+        print("No password given; cannot pull data from Tromsø Geophysical \
+                Observatory. Save a password locally in tgopw.txt.")
     df = pd.DataFrame()
     # Magnetometer parameter dict so that we don't have to type the full string:
     tgo_dict = {'bfe':'bfe6d', 'roe':'roe1d', 'nrd':'nrd1d', 'thl':'thl6d', 'svs':'svs1d', 'kuv':'kuv1d', 'upn':'upn1d', 'dmh':'dmh1d', 'umq':'umq1d', 'atu':'atu1d', 'gdh': 'gdh4d', 'stf': 'stf1d', 'skt': 'skt1d', 'ghb':'ghb1d', 'fhb':'fhb1d', 'naq':'naq4d', 'tdc':'tdc4d', 'hov':'hov1d', 'sum':'sum1d'}
@@ -185,8 +186,10 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec', is_verbos
     # Convert 'UT' column to datetime objects
     data['UT'] = data['UT'].to_pydatetime()
 
-    if(data['MAGNETIC_NORTH_-_H'][1] == 999.9999):
-        print("WARNING: Data for " + magname.upper() + " on " + str(start) + " may not be available.\n  Check your parameters and verify magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html.")
+    if data['MAGNETIC_NORTH_-_H'][1] == 999.9999:
+        print("WARNING: Data for " + magname.upper() + " on " + str(start) + "\
+            may not be available.\n  Check your parameters and verify \
+            magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html.")
     # print(type(df))
     # return df
     return data
@@ -258,43 +261,67 @@ def magfetch(
 # MAGDF Function to create multi-indexable dataframe of all mag parameters for a given period of time. 
 
 def magdf(
-    start = datetime.datetime(2016, 1, 25, 0, 0, 0), 
-    end = datetime.datetime(2016, 1, 26, 0, 0, 0), 
+    start = datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end = datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic mags
     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic mags
-    is_detrended = True, 
-    is_pivoted   = False, 
-    is_uniform = False, 
-    is_saved = False, 
+    is_detrended = True,
+    is_pivoted   = False,
+    is_uniform = False,
+    is_saved = False,
     is_verbose = False,
      ):
-    """
-       Function to create power plots for conjugate magnetometers.
+    """Function to create multi-indexable dataframe of all mag parameters for a
+        given period of time.
 
-        Arguments:
-            start, end   : datetimes of the start and end of plots
-            maglist_a     : List of Arctic magnetometers. Default:
-                            ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-            maglist_b     : Corresponding list of Antarctic magnetometers.
-                            Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-            is_detrended  : Boolean for whether median is subtracted from data.
-                            True by default.
-            is_pivoted    : Boolean for whether returned dataframe is organized
-                            by timestamp. False by default.
-            is_uniform    : Boolean for whether the resolution is made uniform
-                            (i.e., downsampled to slowest cadence.)
-                            True by default.
-                            Time series plots can be native resolution for
-                            both sets, but spectrogram plots should be uniform.
-            is_saved       : Boolean for whether resulting dataframe is saved
-                             to /output directory.
-            is_verbose    : Boolean for whether debugging text is printed.
+    Arguments
+    ---------
+    start, end : datetime
+        Datetimes of the start and end of period of interest.
 
-        Returns:
-            Dataframe of Bx, By, Bz for each magnetometer in list.
+    maglist_a : list, optional
+        List of Arctic magnetometers.
+        Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+
+    maglist_b : list, optional
+        Corresponding list of Antarctic magnetometers.
+        Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+
+    is_detrended : bool, optional
+        Boolean for whether median is subtracted from data. Defaults to True.
+
+    is_pivoted : bool, optional
+        Boolean for whether returned dataframe is organized by timestamp.
+        Defaults to False.
+
+    is_uniform : bool, optional
+        Boolean for whether the resolution is made uniform
+        (i.e., downsampled to slowest cadence). Defaults to True.
+        Time series plots can be native resolution for both sets,
+        but spectrogram plots should be uniform.
+
+    is_saved : bool, optional
+        Boolean for whether resulting dataframe is saved to /output directory.
+
+    is_verbose : bool, optional
+        Boolean for whether debugging text is printed.
+
+    Returns
+    -------
+    dataframe : pandas.DataFrame
+        Dataframe of Bx, By, Bz for each magnetometer in list.
+
+    Example Use
+    ------------
+    Generates dataframe with default values::
+
+    df = magdf(is_verbose = True, is_saved = True)
     """
     # Magnetometer parameter dict so we don't have to type the full string:
-    d = {'Bx': 'MAGNETIC_NORTH_-_H', 'By': 'MAGNETIC_EAST_-_E', 'Bz': 'VERTICAL_DOWN_-_Z'}
+    d = {'Bx': 'MAGNETIC_NORTH_-_H',
+         'By': 'MAGNETIC_EAST_-_E',
+         'Bz': 'VERTICAL_DOWN_-_Z'
+         }
 
     d_i = dict((v, k) for k, v in d.items()) # inverted mapping for col renaming later
     if is_saved:
