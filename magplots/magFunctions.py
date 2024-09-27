@@ -1,4 +1,4 @@
-"""Functions for visualization of magnetometer data.."""
+"""Functions for visualization of magnetometer data."""
 
 # Importing packages:
 # For fill_nan:
@@ -41,10 +41,11 @@ import matplotlib.colors as colors
 
 ###############################################################################
 
+
 def fill_nan(y):
     """Fit a linear regression to the non-nan y values
 
-        Parameters
+    Parameters
     ----------
     y      : np.array
         1D numpy array with NaNs in it
@@ -87,7 +88,7 @@ def fill_nan(y):
 def reject_outliers(y):   # y is the data in a 1D numpy array
     """Function to reject outliers from a 1D dataset.
 
-        Parameters
+    Parameters
     ----------
     y      : np.array
         1D numpy array with outliers
@@ -109,6 +110,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
     return np.where((mean - 3 * sd < y) & (y < mean + 5 * sd), y, np.nan)
 
 ###############################################################################
+
 
 def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
     is_verbose=False, is_url_printed=False):
@@ -137,16 +139,17 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
 
     Returns
     -------
-    df        : pandas.DataFrame
+    df              : pandas.DataFrame
             A pandas DataFrame containing the fetched data.
 
     Example Use
     ------------
     Save the password locally in the file `tgopw.txt.`
     Run::
-
         magfetchtgo(is_verbose=True))
+
     """
+
     if tgopw == '':
         print("No password given; cannot pull data from Tromsø Geophysical \
                 Observatory. Save a password locally in tgopw.txt.")
@@ -196,6 +199,8 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
     return data
 
 ###############################################################################
+
+
 def magfetch(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
@@ -237,13 +242,13 @@ def magfetch(
     Example Use
     ------------
     Generates dataframe for ATU::
+        magfetch(start = datetime.datetime(2018, 9, 4, 0, 0, 0),
+                    end = datetime.datetime(2018, 9, 5, 0, 0, 0),
+                    magname = 'atu',
+                    resolution = '1sec',
+                    is_verbose = True
+                )
 
-    magfetch(start = datetime.datetime(2018, 9, 4, 0, 0, 0),
-                end = datetime.datetime(2018, 9, 5, 0, 0, 0),
-                magname = 'atu',
-                resolution = '1sec',
-                is_verbose = True
-            )
     """
 
     if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # Northern mags for TGO data
@@ -283,6 +288,7 @@ def magfetch(
     return data
 
 ###############################################################################
+
 
 def magdf(
     start = datetime.datetime(2016, 1, 25, 0, 0, 0),
@@ -951,25 +957,30 @@ def wavefig(
     Arguments
     ---------
     stations : pandas.DataFrame, optional
-        Dataframe of stations with columns IAGA, AACGMLAT, AACGMLON. If left empty, will pull from local file stations.csv.
+        Dataframe of stations with columns IAGA, AACGMLAT, AACGMLON.
+        If left empty, will pull from local file stations.csv.
 
     parameter : str
-        The parameter of interest - Bx, By, or Bz. North/South, East/West, and vertical, respectively.
+        The parameter of interest - Bx, By, or Bz. North/South, East/West,
+        and vertical, respectively.
 
     start, end : datetime
         Datetimes of the start and end of plots.
 
     maglist_a : list, optional
-        List of Arctic magnetometers. Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+        List of Arctic magnetometers.
+        Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
 
     maglist_b : list, optional
-        Corresponding list of Antarctic magnetometers. Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+        Corresponding list of Antarctic magnetometers.
+        Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
 
     f_lower, f_upper : float
         Range of frequencies of interest in mHz.
 
     is_maglist_only : bool, optional
-        Boolean for whether only maglist_a and maglist_b stations are included from the complete station list.
+        Boolean for whether only maglist_a and maglist_b stations are included
+        from the complete station list.
 
     is_detrended : bool, optional
         Boolean for whether median is subtracted from data. Defaults to True.
