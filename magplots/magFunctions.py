@@ -275,15 +275,14 @@ def magfetch(
     if is_verbose:
         print("Data for", magname.upper(), "collected:", len(data["UT"]), "samples.")
     if is_detrended:
-        if is_verbose: print('Detrending data - subtracting the median.')
+        if is_verbose:
+            print('Detrending data - subtracting the median.')
         data['MAGNETIC_NORTH_-_H'] - np.median(data['MAGNETIC_NORTH_-_H'])
         data['MAGNETIC_EAST_-_E'] - np.median(data['MAGNETIC_EAST_-_E'])
         data['VERTICAL_DOWN_-_Z'] - np.median(data['VERTICAL_DOWN_-_Z'])
     return data
 
 ###############################################################################
-
-# MAGDF Function to create multi-indexable dataframe of all mag parameters for a given period of time. 
 
 def magdf(
     start = datetime.datetime(2016, 1, 25, 0, 0, 0),
@@ -377,7 +376,7 @@ def magdf(
             df['Magnetometer'] = magname.upper()
             full_df = pd.concat([full_df, df])
 
-                # print(df)
+            # print(df)
             # except Exception as e:
             #     print(e)
             #     continue
@@ -412,6 +411,7 @@ def magdf(
 
 ###############################################################################
 
+
 def magfig(
     parameter = 'Bx',
     start = datetime.datetime(2016, 1, 25, 0, 0, 0),
@@ -428,37 +428,68 @@ def magfig(
     is_verbose = False,
     events=None, event_fontdict = {'size':20,'weight':'bold'}
 ):
-    """
-    MAGFIG
-        Function to create a stackplot for a given set of conjugate
+    """Function to create a stackplot for a given set of conjugate
         magnetometers over a given length of time.
 
-        Arguments:
-            parameter    : The parameter of interest - Bx, By, or Bz.
-                            North/South, East/West, and vertical, respectively.
-            start, end   : datetimes of the start and end of plots
-            maglist_a    : List of Arctic magnetometers.
-                            Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-            maglist_b    : Corresponding list of Antarctic magnetometers.
-                            Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-            is_detrended  : Boolean for whether median is subtracted from data.
-                            True by default.
-            is_displayed : Boolean for whether resulting figure is displayed
-                            inline. False by default.
-            is_titled    : Boolean for overall plot title. True by default.
-            is_saved     : Boolean for whether resulting figure is saved to
-                            /output directory.
-            fstem        : String for filename prefix. Empty by default.
-            is_autoscaled: Boolean for whether time domain plot is autoscaled.
-                            False by default.
-            ylim         : y-axis limits for time domain plot, in nanotesla
-                            above and below median. [-150, 150] by default.
-            is_verbose   : Boolean for displaying debugging text.
-            events       : List of datetimes for events marked on figure.
-                            Empty by default.
+    Arguments
+    ---------
+    parameter : str
+        The parameter of interest - Bx, By, or Bz. North/South, East/West, and
+        vertical, respectively.
 
-        Returns:
+    start, end : datetime
+        Datetimes of the start and end of plots.
 
+    maglist_a : list, optional
+        List of Arctic magnetometers.
+        Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+
+    maglist_b : list, optional
+        Corresponding list of Antarctic magnetometers. Defaults to
+        ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+
+    is_detrended : bool, optional
+        Boolean for whether median is subtracted from data. Defaults to True.
+
+    is_displayed : bool, optional
+        Boolean for whether resulting figure is displayed inline.
+        Defaults to False.
+
+    is_titled : bool, optional
+        Boolean for overall plot title. Defaults to True.
+
+    is_saved : bool, optional
+        Boolean for whether resulting figure is saved to /output directory.
+
+    fstem : str, optional
+        String for filename prefix. Empty by default.
+
+    is_autoscaled : bool, optional
+        Boolean for whether time domain plot is autoscaled. Defaults to False.
+
+    ylim : list, optional
+        y-axis limits for time domain plot, in nanotesla above and below median.
+        Defaults to [-150, 150].
+
+    is_verbose : bool, optional
+        Boolean for displaying debugging text.
+
+    events : list, optional
+        List of datetimes for events marked on figure. Empty by default.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The generated figure.
+
+    Example Use
+    ------------
+    Generate figure for selected time range.
+    Run::
+
+        start = datetime.datetime(2019, 8, 2, 0, 0, 0)
+        end = datetime.datetime(2019, 8, 3, 0, 0, 0)
+        magfig(start=start, end=end, is_verbose = True)
     """
 
     if is_saved:
