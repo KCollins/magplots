@@ -85,14 +85,24 @@ def fill_nan(y):
 # Function to reject outliers. We'll need this to eliminate power cycling 
 # artifacts in the magnetometer plots.
 def reject_outliers(y):   # y is the data in a 1D numpy array
-    """
-        Function to reject outliers from a 1D dataset.
+    """Function to reject outliers from a 1D dataset.
 
-        Arguments:
-            y      : 1D numpy array
+        Parameters
+    ----------
+    y      : np.array
+        1D numpy array with outliers
 
-        Returns:
-            array with outliers replaced with NaN
+    Returns
+    -------
+    y      : np.array
+        1D numpy array with outliers replaced by NaN
+
+    Example Use
+    ------------
+    Creates a 1D array with outliers and removes them::
+
+        reject_outliers(np.append(y, [-51e100, 41, 2, 45], axis=0))
+
     """
     mean = np.mean(y)
     sd = np.std(y)
