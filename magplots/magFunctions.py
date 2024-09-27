@@ -609,34 +609,87 @@ def magspect(
     event_fontdict={'size': 20, 'weight': 'bold'},
     myFmt=mdates.DateFormatter('%H:%M')
 ):
-    """
-    Function to create power plots for conjugate magnetometers.
+    """Function to create spectrogram plots for conjugate magnetometers.
 
-    Arguments:
-        parameter: The parameter of interest - Bx, By, or Bz. North/South,
-            East/West, and vertical, respectively.
-        start, end: datetimes of the start and end of plots
-        maglist_a: List of Arctic magnetometers.
-            Default: ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
-        maglist_b: Corresponding list of Antarctic magnetometers. Default: ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-        is_displayed: Boolean for whether resulting figure is displayed inline. False by default.
-        is_saved: Boolean for whether resulting figure is saved to /output directory.
-        fstem: String for filename prefix. Empty by default.
-        is_verbose: Boolean for displaying debugging text.
-        is_uniform: Boolean to pass to magdf() so that both sets of plots are the same resolution. True by default. 
-        is_logaxis: Boolean for whether the y-axis is logarithmic False by default.
-        is_logcolor: Boolean for whether colormap is logarithmic. True by default.
-        colormap: matplotlib colormap name. Viridis by default.
-        is_overplotted: Time domain plot is overlaid on spectrogram plot. True by default.
-        is_autoscaled: Boolean for whether time domain plot is autoscaled. False by default. 
-        ylim: y-axis limits for time domain plot, in nanotesla above and below median. [-150, 150] by default.
-        color: Color for overplotting time domain data. White by default.
-        events: List of datetimes for events marked on figure. Empty by default.
-        event_fontdict: Font dict for formatting of event labels. Default: {'size': 20, 'weight': 'bold'}
-        myFmt: Date formatter. By default: mdates.DateFormatter('%H:%M')
+    Arguments
+    ---------
+    parameter : str
+        The parameter of interest - Bx, By, or Bz. North/South, East/West, and
+        vertical, respectively.
 
-    Returns:
+    start, end : datetime
+        Datetimes of the start and end of plots.
+
+    maglist_a : list, optional
+        List of Arctic magnetometers.
+        Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+
+    maglist_b : list, optional
+        Corresponding list of Antarctic magnetometers.
+        Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+
+    is_displayed : bool, optional
+        Boolean for whether resulting figure is displayed inline.
+        Defaults to False.
+
+    is_saved : bool, optional
+        Boolean for whether resulting figure is saved to /output directory.
+
+    fstem : str, optional
+        String for filename prefix. Empty by default.
+
+    is_verbose : bool, optional
+        Boolean for displaying debugging text.
+
+    is_uniform : bool, optional
+        Boolean to pass to magdf() so that both sets of plots are the same
+        resolution. Defaults to True.
+
+    is_logaxis : bool, optional
+        Boolean for whether the y-axis is logarithmic. Defaults to False.
+
+    is_logcolor : bool, optional
+        Boolean for whether colormap is logarithmic. Defaults to True.
+
+    colormap : str, optional
+        matplotlib colormap name. Defaults to Viridis.
+
+    is_overplotted : bool, optional
+        Time domain plot is overlaid on spectrogram plot. Defaults to True.
+
+    is_autoscaled : bool, optional
+        Boolean for whether time domain plot is autoscaled. Defaults to False.
+
+    ylim : list, optional
+        y-axis limits for time domain plot, in nanotesla above and below
+        median. Defaults to [-150, 150].
+
+    color : str, optional
+        Color for overplotting time domain data. Defaults to White.
+
+    events : list, optional
+        List of datetimes for events marked on figure. Empty by default.
+
+    event_fontdict : dict, optional
+        Font dict for formatting of event labels.
+        Defaults to {'size': 20, 'weight': 'bold'}.
+
+    myFmt : matplotlib.dates.DateFormatter, optional
+        Date formatter. By default: mdates.DateFormatter('%H:%M').
+
+    Returns
+    -------
+    figure : matplotlib.figure.Figure
         Figure of stacked plots for date in question, with events marked.
+
+    Example Use
+    ------------
+    Generate figure for selected time range.
+    Run::
+
+        start = datetime.datetime(2019, 8, 2, 0, 0, 0)
+        end = datetime.datetime(2019, 8, 3, 0, 0, 0)
+        magspect(start=start, end=end, is_verbose = False)
     """
     if is_uniform == False:
         print("Warning: Scaling will not work correctly without uniform sampling.")
@@ -651,14 +704,14 @@ def magspect(
     print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
 
     all_the_data = magdf(start=start,
-                 end=end,
-                 maglist_a=maglist_a,
-                 maglist_b=maglist_b,
-                 is_detrended=is_detrended,
-                 is_pivoted = False,
-                 is_uniform = is_uniform,
-                 is_saved=is_saved,
-                 is_verbose=is_verbose)
+                         end=end,
+                         maglist_a=maglist_a,
+                         maglist_b=maglist_b,
+                         is_detrended=is_detrended,
+                         is_pivoted = False,
+                         is_uniform = is_uniform,
+                         is_saved=is_saved,
+                         is_verbose=is_verbose)
     if is_verbose:
         print(all_the_data.head(10))
     # assert all_the_data.shape[1] == 5
@@ -697,11 +750,12 @@ def magspect(
                     # Create a logarithmic norm for the colormap
                     vmin=np.abs(Zxx).min()
                     vmax=np.abs(Zxx).max()
-                    if is_verbose: 
+                    if is_verbose:
                         print(vmin, vmax)
-                    if(vmin == 0): 
+                    if vmin == 0:
                         vmin = .00001
-                        if(is_verbose): print("Adjusting vmin.")
+                        if is_verbose:
+                            print("Adjusting vmin.")
                     norm = colors.LogNorm(vmin=vmin, vmax=vmax)
                     # Plot the spectrogram with the logarithmic norm
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), norm=norm, cmap = colormap)
