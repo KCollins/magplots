@@ -155,13 +155,17 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
                 Observatory. Save a password locally in tgopw.txt.")
     df = pd.DataFrame()
     # Magnetometer parameter dict so that we don't have to type the full string:
-    tgo_dict = {'bfe':'bfe6d', 'roe':'roe1d', 'nrd':'nrd1d', 'thl':'thl6d', 'svs':'svs1d', 'kuv':'kuv1d', 'upn':'upn1d', 'dmh':'dmh1d', 'umq':'umq1d', 'atu':'atu1d', 'gdh': 'gdh4d', 'stf': 'stf1d', 'skt': 'skt1d', 'ghb':'ghb1d', 'fhb':'fhb1d', 'naq':'naq4d', 'tdc':'tdc4d', 'hov':'hov1d', 'sum':'sum1d'}
+    tgo_dict = {'bfe': 'bfe6d', 'roe': 'roe1d', 'nrd': 'nrd1d', 'thl': 'thl6d',
+                'svs': 'svs1d', 'kuv': 'kuv1d', 'upn': 'upn1d', 'dmh': 'dmh1d',
+                'umq': 'umq1d', 'atu': 'atu1d', 'gdh': 'gdh4d', 'stf': 'stf1d',
+                'skt': 'skt1d', 'ghb': 'ghb1d', 'fhb': 'fhb1d', 'naq': 'naq4d',
+                'tdc': 'tdc4d', 'hov': 'hov1d', 'sum': 'sum1d'}
     # Loop over each day from start to end
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
         url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
         if is_url_printed:
-                    print(url)
+            print(url)
         # Fetch the data for the current day
         foo = pd.read_csv(url, skiprows = 6, sep=r"\s+", usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
@@ -265,7 +269,8 @@ def magfetch(
     if tgopw:  # Use TGO data if password found or provided
         if is_verbose:
             print("Collecting data for", magname.upper(), "from TGO.")
-        data = magfetchtgo(start, end, magname, tgopw=tgopw, resolution=resolution, is_verbose=is_verbose)
+        data = magfetchtgo(start, end, magname, tgopw=tgopw,
+                           resolution=resolution, is_verbose=is_verbose)
     else:  # Use CDAWeb
         if is_verbose:
             print("Collecting data for", magname.upper(), "from CDAWeb.")
@@ -364,9 +369,10 @@ def magdf(
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             if is_verbose:
-                print('Looks like ' + fname + ' has already been generated. Pulling data...')
+                print('Looks like ' + fname + ' has already been generated. \
+                        Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
-    UT = pd.date_range(start, end, freq ='s')   # preallocate time range
+    UT = pd.date_range(start, end, freq='s')   # preallocate time range
     full_df = pd.DataFrame(UT, columns=['UT'])   # preallocate dataframe
     full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
     full_df['Magnetometer'] = ""
@@ -392,7 +398,7 @@ def magdf(
                            axis=1,
                            errors='ignore' # some stations don't seem to have this columm # TODO why is this
                            )
-    df_pivoted = full_df.pivot(index='UT', columns='Magnetometer', 
+    df_pivoted = full_df.pivot(index='UT', columns='Magnetometer',
                                values=['Bx', 'By', 'Bz'])
     if is_pivoted:
         if is_verbose:
@@ -551,9 +557,11 @@ def magfig(
 
                     axs[idx].axvline(evt_dtime,lw=1,ls='--',color=evt_color)
                     if evt_label is not None:
-                        axs[idx].text(evt_dtime,0.01,evt_label,transform=trans,
-                                rotation=90,fontdict=event_fontdict,color=evt_color,
-                                va='bottom',ha='right')
+                        axs[idx].text(evt_dtime, 0.01, evt_label,
+                                      transform=trans, rotation=90,
+                                      fontdict=event_fontdict,
+                                      color=evt_color,
+                                      va='bottom', ha='right')
 
             #  Corresponding Antarctic mag data on same plot...
             magname = maglist_b[idx]
@@ -765,7 +773,9 @@ def magspect(
                     norm = colors.LogNorm(vmin=vmin, vmax=vmax)
                     # Plot the spectrogram with the logarithmic norm
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
-                            np.abs(Zxx) * np.abs(Zxx), norm=norm, cmap = colormap)
+                                                        np.abs(Zxx) * np.abs(Zxx),
+                                                        norm=norm, cmap=colormap
+                                                        )
                 else:
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
                     # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
@@ -800,7 +810,8 @@ def magspect(
                             ax2.set_ylim(ylims)
 
                         # y-axis labels and ticks
-                        if(is_verbose): print('Setting y-axis color for time domain plot.')
+                        if is_verbose:
+                            print('Setting y-axis color for time domain plot.')
                         ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
                         ax2.tick_params(axis ='y', labelcolor = color)
 
@@ -832,6 +843,8 @@ def magspect(
         return fig
 
 ###############################################################################
+
+
 def wavepwr(station_id,
             parameter,         # Bx, By or Bz
             start,
