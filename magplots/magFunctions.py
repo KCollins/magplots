@@ -154,15 +154,18 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
         if is_url_printed:
             print(url)
         # Fetch the data for the current day
-        foo = pd.read_csv(url, skiprows = 6, sep=r"\s+", usecols=range(5), index_col=False)
+        dayframe = pd.read_csv(url, skiprows=6, sep=r"\s+", usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
-        foo['DD/MM/YYYY HH:MM:SS'] = foo['DD/MM/YYYY'] + ' ' + foo['HH:MM:SS']
-        foo['UT'] = pd.to_datetime(foo['DD/MM/YYYY HH:MM:SS'], format='%d/%m/%Y %H:%M:%S')
-        foo = foo[(foo['UT'] >= start) & (foo['UT'] <= end)] # remove values before start, after end
-        # foo['UT'] = foo['UT'].to_pydatetime()
+        dayframe['DD/MM/YYYY HH:MM:SS'] = dayframe['DD/MM/YYYY'] + ' ' + dayframe['HH:MM:SS']
+        dayframe['UT'] = pd.to_datetime(dayframe['DD/MM/YYYY HH:MM:SS'], format='%d/%m/%Y %H:%M:%S')
+        dayframe = dayframe[(dayframe['UT'] >= start) & (dayframe['UT'] <= end)]
         # Rename the columns
-        foo.rename(columns={'X': 'MAGNETIC_NORTH_-_H', 'Y': 'MAGNETIC_EAST_-_E', 'Z': 'VERTICAL_DOWN_-_Z'}, inplace=True)
-        df = pd.concat([df, foo])
+        dayframe.rename(columns={
+                                    'X': 'MAGNETIC_NORTH_-_H',
+                                    'Y': 'MAGNETIC_EAST_-_E',
+                                    'Z': 'VERTICAL_DOWN_-_Z'
+                                }, inplace=True)
+        df = pd.concat([df, dayframe])
 
     # # Convert the dataframe to a dictionary
     data = {
@@ -530,16 +533,16 @@ def magfig(
                     print(ylims)
                 axs[idx].set_ylim(ylims)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
-            axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color = color)
+            axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             axs[idx].tick_params(axis ='y', labelcolor = color)
 
             if events is not None:
                 # print('Plotting events...')
-                trans       = mpl.transforms.blended_transform_factory(axs[idx].transData,axs[idx].transAxes)
+                trans = mpl.transforms.blended_transform_factory(axs[idx].transData,axs[idx].transAxes)
                 for event in events:
-                    evt_dtime   = event.get('datetime')
-                    evt_label   = event.get('label')
-                    evt_color   = event.get('color', '0.4')
+                    evt_dtime = event.get('datetime')
+                    evt_label = event.get('label')
+                    evt_color = event.get('color', '0.4')
 
                     axs[idx].axvline(evt_dtime,lw=1,ls='--',color=evt_color)
                     if evt_label is not None:
@@ -554,8 +557,8 @@ def magfig(
             ax2 = axs[idx].twinx()
             print('Plotting data for Antarctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
             data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
-            x =data['UT']
-            y =data[parameter]
+            x = data['UT']
+            y = data[parameter]
 
             color = 'tab:red'
             y = reject_outliers(y)  # Remove power cycling artifacts (PG2)
@@ -574,7 +577,7 @@ def magfig(
 
             ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             ax2.tick_params(axis='y', labelcolor=color)
-        except Exception as e:
+        except ValueError as e:
             print(e)
             continue
     if is_titled:
@@ -584,7 +587,7 @@ def magfig(
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
-        return fig # TODO: Figure out how to suppress output here
+        return fig 
 
 
 ###############################################################################
