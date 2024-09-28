@@ -1,40 +1,27 @@
 """Functions for visualization of magnetometer data."""
 
 # Importing packages:
-# For fill_nan:
-from scipy import interpolate
+import os
+import os.path
+import datetime
 import numpy as np
-
+import pandas as pd
 
 # For pulling data from CDAweb:
 from ai import cdas
-import datetime
+
+
 from matplotlib import pyplot as plt
 import matplotlib as mpl
-
-import pandas as pd
-
-# For saving files:
-import os
-import os.path
-from os import path
-
-# For power plots:
 import matplotlib.dates as mdates
-from matplotlib.dates import DateFormatter
+
 from scipy import signal
 from scipy.fft import fft
 from scipy.signal import butter, filtfilt, stft, spectrogram
-import datetime as dt
-import numpy as np
-import matplotlib.pyplot as plt
 from scipy.signal import welch
 from scipy.signal.windows import hann
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
-# For wave power plots:
-import plotly.express as px
+import plotly.graph_objects as go
 
 # For spectrograms:
 import matplotlib.colors as colors
@@ -67,24 +54,26 @@ def fill_nan(y):
     # Fit a linear regression to the non-nan y values
 
     # Create X matrix for linreg with an intercept and an index
-    X = np.vstack((np.ones(len(y)), np.arange(len(y))))
+    x = np.vstack((np.ones(len(y)), np.arange(len(y))))
 
     # Get the non-NaN values of X and y
-    X_fit = X[:, ~np.isnan(y)]
+    x_fit = x[:, ~np.isnan(y)]
     y_fit = y[~np.isnan(y)].reshape(-1, 1)
 
     # Estimate the coefficients of the linear regression
     # beta = np.linalg.lstsq(X_fit.T, y_fit)[0]
-    beta = np.linalg.lstsq(X_fit.T, y_fit, rcond=-1)[0]
+    beta = np.linalg.lstsq(x_fit.T, y_fit, rcond=-1)[0]
 
     # Fill in all the nan values using the predicted coefficients
-    y.flat[np.isnan(y)] = np.dot(X[:, np.isnan(y)].T, beta)
+    y.flat[np.isnan(y)] = np.dot(x[:, np.isnan(y)].T, beta)
     return y
 
 ###############################################################################
 
+
 # Function to reject outliers. We'll need this to eliminate power cycling
 # artifacts in the magnetometer plots.
+
 def reject_outliers(y):   # y is the data in a 1D numpy array
     """Function to reject outliers from a 1D dataset.
 
@@ -112,7 +101,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
 ###############################################################################
 
 
-def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
+def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     is_verbose=False, is_url_printed=False):
     """Pulls Tromsø Geophysical Observatory data from a RESTful API with a link
          based on the date.
@@ -258,9 +247,9 @@ def magfetch(
 
     """
 
-    if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # Northern mags for TGO data
+    if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # if Arctic, TGO
         try:
-            with open("tgopw.txt", "r") as file:
+            with open("tgopw.txt", "r", encoding="utf-8") as file:
                 tgopw = file.read().strip()
             if is_verbose:
                 print("Found Tromsø Geophysical Observatory password.")
