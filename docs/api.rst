@@ -8,7 +8,7 @@ API
 Main Functions
 --------------
 
-.. autofunction:: magFunctions.fill_nan
+.. autofunction:: magplots.fill_nan
 
 .. autofunction:: magFunctions.reject_outliers
 
