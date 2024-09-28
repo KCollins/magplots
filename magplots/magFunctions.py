@@ -154,7 +154,7 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
         print("No password given; cannot pull data from Tromsø Geophysical \
                 Observatory. Save a password locally in tgopw.txt.")
     df = pd.DataFrame()
-    # Magnetometer parameter dict so that we don't have to type the full string:
+    # Mag parameter dict so that we don't have to type the full string:
     tgo_dict = {'bfe': 'bfe6d', 'roe': 'roe1d', 'nrd': 'nrd1d', 'thl': 'thl6d',
                 'svs': 'svs1d', 'kuv': 'kuv1d', 'upn': 'upn1d', 'dmh': 'dmh1d',
                 'umq': 'umq1d', 'atu': 'atu1d', 'gdh': 'gdh4d', 'stf': 'stf1d',
@@ -163,7 +163,10 @@ def magfetchtgo(start, end, magname, tgopw = '', resolution = '10sec',
     # Loop over each day from start to end
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
-        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
+        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site\
+                ={tgo_dict.get(magname) if magname in tgo_dict else magname}&\
+                year={start.year}&month={start.month}&day={day}&res={resolution}&\
+                pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
         if is_url_printed:
             print(url)
         # Fetch the data for the current day
@@ -358,7 +361,7 @@ def magdf(
          'Bz': 'VERTICAL_DOWN_-_Z'
          }
 
-    d_i = dict((v, k) for k, v in d.items()) # inverted mapping for col renaming later
+    d_i = dict((v, k) for k, v in d.items()) # inverted map for col renaming later
     if is_saved:
         fname = 'output/' +str(start) + '_to_' + str(end) + '_'
         if is_pivoted:
@@ -480,7 +483,7 @@ def magfig(
         Boolean for whether time domain plot is autoscaled. Defaults to False.
 
     ylim : list, optional
-        y-axis limits for time domain plot, in nanotesla above and below median.
+        y-axis limits for time domain plot, in nanotesla above, below median.
         Defaults to [-150, 150].
 
     is_verbose : bool, optional
@@ -575,13 +578,15 @@ def magfig(
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             ax2.plot(x,-y, color=color)
 
-            if(~is_autoscaled & np.isfinite(y).all()):
+            if ~is_autoscaled & np.isfinite(y).all():
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
+                if is_verbose:
+                    print('Adjusting y-axis limits. Median: ' + str(median))
                 ylims = [foo+median for foo in ylim]
-                if(is_verbose): print(ylims)
-                if(~np.isfinite(ylim).any()):
+                if is_verbose:
+                    print(ylims)
+                if ~np.isfinite(ylim).any():
                     ax2.set_ylim(ylims)
 
             ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
@@ -589,7 +594,8 @@ def magfig(
         except Exception as e:
             print(e)
             continue
-    if(is_titled == True): fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)    # Title the plot...
+    if(is_titled == True):
+        fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)    # Title the plot...
     if is_saved:
         print("Saving figure. " + fname)
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
@@ -786,34 +792,38 @@ def magspect(
                 # Add a colorbar
                 cbar = plt.colorbar(cmap, ax=axs[idx, sideidx])
                 cbar.set_label('Power Spectral Density')
-                if(is_logaxis): 
+                if is_logaxis:
                     axs[idx, sideidx].set_yscale('log')
-                    if(is_verbose): print("Setting logarithmic scale on y axis.")
+                    if is_verbose:
+                        print("Setting logarithmic scale on y axis.")
 
-                if(is_overplotted == True):# overplot time domain data
-                        if(is_verbose): print("Plotting time domain data on spectrogram plot.")
-                        # Create a new twin axis for the time domain plot
-                        ax2 = axs[idx, sideidx].twinx()
+                if is_overplotted is True:  # overplot time domain data
+                    if is_verbose:
+                        print("Plotting time domain data on spectrogram plot.")
+                    # Create a new twin axis for the time domain plot
+                    ax2 = axs[idx, sideidx].twinx()
 
-                        # Plot the time domain data on the twin axis
-                        ax2.plot(x, y, color=color, alpha=0.7, label=parameter)  # Adjust color and label as needed
+                    # Plot the time domain data on the twin axis - adjust color, label
+                    ax2.plot(x, y, color=color, alpha=0.7, label=parameter)
 
-                        # Adjust x-axis limits to match spectrogram
-                        ax2.set_xlim(xlim)
+                    # Adjust x-axis limits to match spectrogram
+                    ax2.set_xlim(xlim)
 
-                        if(~is_autoscaled):
-                            # Adjust y-axis limits around mean:
-                            median = np.median(y)
-                            if(is_verbose): print('Adjusting y-axis limits. Median: ' + str(median))
-                            ylims = [foo+median for foo in ylim]
-                            if(is_verbose): print(ylims)
-                            ax2.set_ylim(ylims)
-
-                        # y-axis labels and ticks
+                    if ~is_autoscaled:
+                        # Adjust y-axis limits around mean:
+                        median = np.median(y)
                         if is_verbose:
-                            print('Setting y-axis color for time domain plot.')
-                        ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
-                        ax2.tick_params(axis ='y', labelcolor = color)
+                            print('Adjusting y-axis limits. Median: ' + str(median))
+                        ylims = [foo+median for foo in ylim]
+                        if is_verbose:
+                            print(ylims)
+                        ax2.set_ylim(ylims)
+
+                    # y-axis labels and ticks
+                    if is_verbose:
+                        print('Setting y-axis color for time domain plot.')
+                    ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
+                    ax2.tick_params(axis ='y', labelcolor = color)
 
                 if events is not None:
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
@@ -999,7 +1009,8 @@ def wavefig(
         Boolean for whether median is subtracted from data. Defaults to True.
 
     is_displayed : bool, optional
-        Boolean for whether resulting figure is displayed inline. Defaults to False.
+        Boolean for whether resulting figure is displayed inline.
+        Defaults to False.
 
     is_saved : bool, optional
         Boolean for whether resulting figure is saved to /output directory.
@@ -1008,7 +1019,8 @@ def wavefig(
         String for filename prefix. Empty by default.
 
     is_data_saved : bool, optional
-        Boolean for whether dataframe of wave power calculation results is saved to /output directory.
+        Boolean for whether dataframe of wave power calculation results is
+        saved to /output directory.
 
     is_verbose : bool, optional
         Boolean for whether debugging text is printed.
@@ -1016,13 +1028,15 @@ def wavefig(
     Returns
     -------
     figure : matplotlib.figure.Figure
-        Figure showing wave power vs longitude, with Artic and Antarctic magnetometers overlaid.
+        Figure showing wave power vs longitude, with Artic and Antarctic
+        magnetometers overlaid.
 
     Example Use
     ------------
     Generate wave power plot for default range::
 
-        wavefig(is_verbose = False, is_displayed = True, is_saved = True, is_data_saved = True)
+        wavefig(is_verbose = False, is_displayed = True, is_saved = True,
+        is_data_saved = True)
     """
 
     if stations == "":
@@ -1047,7 +1061,7 @@ def wavefig(
             end=end,
             f_lower=f_lower,
             f_upper=f_upper,
-            is_saved=is_saved, # TODO is_saved and is_data_saved could be confusing to users here
+            is_saved=is_saved,
             is_verbose=is_verbose,
             is_detrended = is_detrended
         ),
@@ -1100,7 +1114,7 @@ def wavefig(
             x = stations_filtered.iloc[i]["ABSLAT"]
             y = stations_filtered.iloc[i]["WAVEPWR"]
             label = stations_filtered.iloc[i]["IAGA"]
-            if (stations_filtered.iloc[i]["HEMISPHERE"] == "Arctic"):
+            if stations_filtered.iloc[i]["HEMISPHERE"] == "Arctic":
                 my_axis = ax
             else:
                 my_axis = ax2
@@ -1153,7 +1167,9 @@ def magall(
     is_maglist_only = True
 ):
     """
-    Function to create all plots for conjugate magnetometers in a given timespan. Generates plots for all parameters: Bx, By, and Bz: North/South, East/West, and vertical, respectively.
+    Function to create all plots for conjugate magnetometers in a given
+    timespan. Generates plots for all parameters: Bx, By, and Bz: North/South,
+    East/West, and vertical, respectively.
 
     Arguments
     ---------
@@ -1161,10 +1177,12 @@ def magall(
         Datetimes of the start and end of plots.
 
     maglist_a : list, optional
-        List of Arctic magnetometers. Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+        List of Arctic magnetometers.
+        Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
 
     maglist_b : list, optional
-        Corresponding list of Antarctic magnetometers. Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+        Corresponding list of Antarctic magnetometers.
+        Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
 
     f_lower, f_upper : float
         Range of frequencies of interest in mHz.
@@ -1173,7 +1191,8 @@ def magall(
         Boolean for whether median is subtracted from data. Defaults to True.
 
     is_displayed : bool, optional
-        Boolean for whether resulting figure is displayed inline. Defaults to False.
+        Boolean for whether resulting figure is displayed inline.
+        Defaults to False.
 
     is_saved : bool, optional
         Boolean for whether resulting figure is saved to /output directory.
@@ -1185,16 +1204,19 @@ def magall(
         List of datetimes for events marked on figure. Empty by default.
 
     event_fontdict : dict, optional
-        Font dict for formatting of event labels. Defaults to {'size': 20, 'weight': 'bold'}.
+        Font dict for formatting of event labels.
+        Defaults to {'size': 20, 'weight': 'bold'}.
 
     myFmt : matplotlib.dates.DateFormatter, optional
         Date formatter. By default: mdates.DateFormatter('%H:%M').
 
     stations : pandas.DataFrame, optional
-        Table of station coordinates. (Type `help(wavefig)` for more information.)
+        Table of station coordinates. (Type `help(wavefig)` for more
+        information.)
 
     is_maglist_only : bool, optional
-        Boolean for whether only maglist_a and maglist_b stations are included from the complete station list.
+        Boolean for whether only maglist_a and maglist_b stations are included
+        from the complete station list.
 
     Returns
     -------
@@ -1213,15 +1235,26 @@ def magall(
             print('Computing plots for parameter ' + parameter + '.')
         if is_verbose:
             print('Saving dataframe.')
-        magdf(start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_saved = is_saved, is_verbose = is_verbose)
+        magdf(start=start, end=end, maglist_a=maglist_a,
+              maglist_b=maglist_b, is_saved=is_saved, is_verbose=is_verbose)
         if is_verbose:
             print('Saving time-domain plot.')
-        magfig(parameter=parameter, start=start, end=end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_saved = is_saved, fstem = fstem, events = events)
+        magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
+               maglist_b = maglist_b, is_displayed = is_displayed,
+               is_saved = is_saved, fstem = fstem, events = events)
         if is_verbose:
             print('Saving spectrogram plot.')
-        magspect(parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, is_displayed = is_displayed, is_verbose = is_verbose, is_saved = is_saved, fstem = fstem,
-                 # events = events, 
+        magspect(parameter = parameter, start = start, end = end,
+                 maglist_a = maglist_a, maglist_b = maglist_b,
+                 is_displayed = is_displayed, is_verbose = is_verbose,
+                 is_saved = is_saved, fstem = fstem,
+                 # events = events,
                  event_fontdict = event_fontdict, myFmt = myFmt)
         if is_verbose:
             print('Generating wave power plot.')
-        wavefig(stations = stations, parameter = parameter, start = start, end = end, maglist_a = maglist_a, maglist_b = maglist_b, f_lower = f_lower, f_upper = f_upper, is_maglist_only = is_maglist_only,  is_displayed = is_displayed, is_saved = is_saved, fstem = fstem, is_verbose = is_verbose)
+        wavefig(stations = stations, parameter = parameter, start = start,
+                end = end, maglist_a = maglist_a, maglist_b = maglist_b,
+                f_lower = f_lower, f_upper = f_upper,
+                is_maglist_only = is_maglist_only,
+                is_displayed = is_displayed, is_saved = is_saved,
+                fstem = fstem, is_verbose = is_verbose)
