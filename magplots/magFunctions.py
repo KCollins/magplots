@@ -10,18 +10,13 @@ import pandas as pd
 # For pulling data from CDAweb:
 from ai import cdas
 
-
-from matplotlib import pyplot as plt
 import matplotlib as mpl
+from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
 
-from scipy import signal
-from scipy.fft import fft
-from scipy.signal import butter, filtfilt, stft, spectrogram
+from scipy.signal import stft
 from scipy.signal import welch
 from scipy.signal.windows import hann
-
-import plotly.graph_objects as go
 
 # For spectrograms:
 import matplotlib.colors as colors
@@ -416,20 +411,20 @@ def magdf(
 
 
 def magfig(
-    parameter = 'Bx',
-    start = datetime.datetime(2016, 1, 25, 0, 0, 0),
-    end = datetime.datetime(2016, 1, 26, 0, 0, 0),
-    maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
-    maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
-    is_detrended = True,
-    is_displayed = False,
-    is_titled = True,
-    is_saved = False,
-    fstem = "",
-    is_autoscaled = False,
-    ylim = [-150, 150],
-    is_verbose = False,
-    events=None, event_fontdict = {'size':20,'weight':'bold'}
+    parameter='Bx',
+    start=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 26, 0, 0, 0),
+    maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
+    maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
+    is_detrended=True,
+    is_displayed=False,
+    is_titled=True,
+    is_saved=False,
+    fstem="",
+    is_autoscaled=False,
+    ylim=[-150, 150],
+    is_verbose=False,
+    events=None, event_fontdict={'size': 20, 'weight': 'bold'}
 ):
     """Function to create a stackplot for a given set of conjugate
         magnetometers over a given length of time.
@@ -496,7 +491,7 @@ def magfig(
     """
 
     if is_saved:
-        fname = 'output/'+ fstem +str(start) + '_' + str(parameter) + '.png'
+        fname = 'output/'+ fstem + str(start) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
@@ -519,8 +514,8 @@ def magfig(
         print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
         try:
             data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
-            x =data['UT']
-            y =data[parameter]
+            x = data['UT']
+            y = data[parameter]
             color = 'tab:blue'
             y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
             axs[idx].plot(x,y, color=color)#x, y)
@@ -563,8 +558,8 @@ def magfig(
             y =data[parameter]
 
             color = 'tab:red'
-            y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
-            ax2.plot(x,-y, color=color)
+            y = reject_outliers(y)  # Remove power cycling artifacts (PG2)
+            ax2.plot(x, -y, color=color)
 
             if ~is_autoscaled & np.isfinite(y).all():
                 # Adjust y-axis limits around mean:
@@ -578,7 +573,7 @@ def magfig(
                     ax2.set_ylim(ylims)
 
             ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
-            ax2.tick_params(axis='y', labelcolor = color)
+            ax2.tick_params(axis='y', labelcolor=color)
         except Exception as e:
             print(e)
             continue
@@ -603,16 +598,16 @@ def magspect(
     is_detrended = True,
     is_displayed=False,
     is_saved=True,
-    fstem = "",
+    fstem="",
     is_verbose=False,
-    is_uniform = True, 
-    is_logaxis = False,
-    is_logcolor = True,
-    colormap = "viridis", # matplotlib colormap
-    is_overplotted = True,
-    is_autoscaled = False,
-    ylim = [-150, 150],
-    color = "white", # default color for overplotting time domain data
+    is_uniform=True,
+    is_logaxis=False,
+    is_logcolor=True,
+    colormap="viridis",  # matplotlib colormap
+    is_overplotted=True,
+    is_autoscaled=False,
+    ylim=[-150, 150],
+    color="white",  # default color for overplotting time domain data
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
     myFmt=mdates.DateFormatter('%H:%M')
@@ -706,7 +701,8 @@ def magspect(
         fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
-            return
+            fig = plt.imread('fname')
+            return fig
 
     fig, axs = plt.subplots(len(maglist_a), 2,
                             figsize=(25, 25), constrained_layout=True)
@@ -830,7 +826,7 @@ def magspect(
                                                    rotation=90, fontdict=event_fontdict, color=evt_color,
                                                    va='bottom', ha='left')
 
-            except Exception as e:
+            except ValueError as e:
                 print(e)
                 continue
 
@@ -945,7 +941,7 @@ def wavepwr(station_id,
     except Exception as e:
         print(e)
         if is_verbose:
-            print('Window length: ' + str(len(win)) +'\n Signal length: ' + str(len(y))) # usually this is the issue.
+            print('Window length: ' + str(len(win)) +'\n Signal length: ' + str(len(y)))  # usually this is the issue.
         return 'Error'
 
 
