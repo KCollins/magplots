@@ -279,24 +279,23 @@ def magfetch(
     if is_detrended:
         if is_verbose:
             print('Detrending data - subtracting the median.')
-        data['MAGNETIC_NORTH_-_H'] - np.median(data['MAGNETIC_NORTH_-_H'])
-        data['MAGNETIC_EAST_-_E'] - np.median(data['MAGNETIC_EAST_-_E'])
-        data['VERTICAL_DOWN_-_Z'] - np.median(data['VERTICAL_DOWN_-_Z'])
-    return data
+        for a in ['MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E', 'VERTICAL_DOWN_-_Z']:
+            data[a] -= np.median(data[a])
+
 
 ###############################################################################
 
 
 def magdf(
-    start = datetime.datetime(2016, 1, 25, 0, 0, 0),
-    end = datetime.datetime(2016, 1, 26, 0, 0, 0),
-    maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic mags
-    maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic mags
-    is_detrended = True,
-    is_pivoted   = False,
-    is_uniform = False,
-    is_saved = False,
-    is_verbose = False,
+    start=datetime.datetime(2016, 1, 25, 0, 0, 0),
+    end=datetime.datetime(2016, 1, 26, 0, 0, 0),
+    maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic mags
+    maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic mags
+    is_detrended=True,
+    is_pivoted=False,
+    is_uniform=False,
+    is_saved=False,
+    is_verbose=False,
      ):
     """Function to create multi-indexable dataframe of all mag parameters for a
         given period of time.
@@ -369,7 +368,7 @@ def magdf(
     full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
     full_df['Magnetometer'] = ""
     for mags in [maglist_a, maglist_b]:
-        for idx, magname in enumerate(mags):   # For each magnetometer, pull data and merge into full_df:
+        for idx, magname in enumerate(mags):
             if is_verbose:
                 print('Pulling data for magnetometer: ' + magname.upper())
             # try:
@@ -384,11 +383,11 @@ def magdf(
             # except Exception as e:
             #     print(e)
             #     continue
-    full_df['UT'] = full_df['UT'].astype('datetime64[s]')# enforce 1s precision
-    full_df = full_df[full_df['Magnetometer'] != '']# drop empty rows
+    full_df['UT'] = full_df['UT'].astype('datetime64[s]')  # enforce 1s
+    full_df = full_df[full_df['Magnetometer'] != '']  # drop empty rows
     full_df = full_df.drop(['UT_1'], # drop extraneous columns
                            axis=1,
-                           errors='ignore' # some stations don't seem to have this columm # TODO why is this
+                           errors='ignore'  # only some stations have this column
                            )
     df_pivoted = full_df.pivot(index='UT', columns='Magnetometer',
                                values=['Bx', 'By', 'Bz'])
@@ -497,7 +496,7 @@ def magfig(
     """
 
     if is_saved:
-        fname = 'output/'+ fstem +str(start) + '_' +  str(parameter) + '.png'
+        fname = 'output/'+ fstem +str(start) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
@@ -531,7 +530,7 @@ def magfig(
                 median = np.median(y)
                 if is_verbose:
                     print('Adjusting y-axis limits. Median: ' + str(median))
-                ylims = [foo+median for foo in ylim]
+                ylims = [val+median for val in ylim]
                 if is_verbose:
                     print(ylims)
                 axs[idx].set_ylim(ylims)
@@ -572,7 +571,7 @@ def magfig(
                 median = np.median(y)
                 if is_verbose:
                     print('Adjusting y-axis limits. Median: ' + str(median))
-                ylims = [foo+median for foo in ylim]
+                ylims = [val+median for val in ylim]
                 if is_verbose:
                     print(ylims)
                 if ~np.isfinite(ylim).any():
@@ -806,7 +805,7 @@ def magspect(
                         median = np.median(y)
                         if is_verbose:
                             print('Adjusting y-axis limits. Median: ' + str(median))
-                        ylims = [foo+median for foo in ylim]
+                        ylims = [val+median for val in ylim]
                         if is_verbose:
                             print(ylims)
                         ax2.set_ylim(ylims)
@@ -918,8 +917,8 @@ def wavepwr(station_id,
                   + magname.upper() + ' between ' + str(start) +
                   ' and ' + str(end) + '.')
         data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
-        x =data['UT']
-        y =data[parameter]
+        x = data['UT']
+        y = data[parameter]
         y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
         y = fill_nan(y)
         y = y - np.nanmean(y)  # Detrend
@@ -1130,9 +1129,8 @@ def wavefig(
         plt.show()
 
     if is_saved:
-        fname = f"""output/{fstem}WavePower_{start}_/to_{end}_
-                {f_lower}mHz to {f_upper}mHz_{parameter}.png"""
-        # fname = "output/" + fstem +f"WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
+        # fname = f"""output/{fstem}WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"""
+        fname = "output/" + fstem +f"WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
         fname = fname.replace(":", "")  # Remove colons from timestamps
         if is_verbose:
             print(f"Saving figure: {fname}")
