@@ -10,20 +10,20 @@ Main Functions
 
 .. autofunction:: magplots.fill_nan
 
-.. autofunction:: magFunctions.reject_outliers
+.. autofunction:: magplots.reject_outliers
 
-.. autofunction:: magFunctions.magfetch
+.. autofunction:: magplots.magfetch
 
-.. autofunction:: magFunctions.magfetchtgo
+.. autofunction:: magplots.magfetchtgo
 
-.. autofunction:: magFunctions.magdf
+.. autofunction:: magplots.magdf
 
-.. autofunction:: magFunctions.magfig
+.. autofunction:: magplots.magfig
 
-.. autofunction:: magFunctions.magspect
+.. autofunction:: magplots.magspect
 
-.. autofunction:: magFunctions.wavepwr
+.. autofunction:: magplots.wavepwr
 
-.. autofunction:: magFunctions.wavefig
+.. autofunction:: magplots.wavefig
 
-.. autofunction:: magFunctions.magall
+.. autofunction:: magplots.magall
