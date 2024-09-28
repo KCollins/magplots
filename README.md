@@ -1,6 +1,7 @@
 # magplots
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10703227.svg)](https://doi.org/10.5281/zenodo.10703227)
 [![PyPI version](https://badge.fury.io/py/magplots.svg)](https://badge.fury.io/py/magplots)
+[![Documentation Status](https://readthedocs.org/projects/magplots/badge/?version=latest)](https://magplots.readthedocs.io/en/latest/?badge=latest)
 
 A python library to pull data and make plots from ground magnetometers. Emphasis on plots for comparing magnetometers at geomagnetic conjugate points.
 
@@ -8,7 +9,11 @@ A python library to pull data and make plots from ground magnetometers. Emphasis
 <!-- Click here to run example code: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/KCollins/magplots/HEAD?labpath=Examples.ipynb) -->
 
 ## Installation
+To install from pypi: 
 `pip install magplots`
+
+To install from source: 
+Clone git repo and run `python -m pip install .` from top level of directory.
 Make sure that you have a folder in your directory named `/output`. This is where plots and dataframes will be saved.
 
 ## MWE
