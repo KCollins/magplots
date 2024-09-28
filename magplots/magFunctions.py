@@ -556,7 +556,7 @@ def magfig(
                 for event in events:
                     evt_dtime   = event.get('datetime')
                     evt_label   = event.get('label')
-                    evt_color   = event.get('color','0.4')
+                    evt_color   = event.get('color', '0.4')
 
                     axs[idx].axvline(evt_dtime,lw=1,ls='--',color=evt_color)
                     if evt_label is not None:
@@ -589,13 +589,13 @@ def magfig(
                 if ~np.isfinite(ylim).any():
                     ax2.set_ylim(ylims)
 
-            ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
-            ax2.tick_params(axis ='y', labelcolor = color)
+            ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
+            ax2.tick_params(axis='y', labelcolor = color)
         except Exception as e:
             print(e)
             continue
-    if(is_titled == True):
-        fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)    # Title the plot...
+    if is_titled:
+        fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)
     if is_saved:
         print("Saving figure. " + fname)
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
@@ -711,17 +711,19 @@ def magspect(
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
         magspect(start=start, end=end, is_verbose = False)
     """
-    if is_uniform == False:
-        print("Warning: Scaling will not work correctly without uniform sampling.")
+    if is_uniform is False:
+        print("Warn: Scaling won't work correctly without uniform sampling.")
     if is_saved:
-        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + '_' + str(parameter) + '.png'
-        fname = fname.replace(":", "") # Remove colons from timestamps
+        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + '_'+ str(parameter) + '.png'
+        fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
             return
 
-    fig, axs = plt.subplots(len(maglist_a), 2, figsize=(25, 25), constrained_layout=True)
-    print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
+    fig, axs = plt.subplots(len(maglist_a), 2,
+                            figsize=(25, 25), constrained_layout=True)
+    print('Plotting data for ' + str(len(maglist_a)) +
+          ' magnetometers: ' + str(start))
 
     all_the_data = magdf(start=start,
                          end=end,
@@ -738,7 +740,8 @@ def magspect(
 
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
         for idx, magname in enumerate(maglist):
-            print('Plotting data for ' + side + ' magnetometer #' + str(idx + 1) + ': ' + magname.upper())
+            print('Plotting data for ' + side + ' magnetometer #' +
+                  str(idx + 1) + ': ' + magname.upper())
 
             try:
                 data = all_the_data[all_the_data["Magnetometer"] == magname.upper()]
@@ -759,8 +762,8 @@ def magspect(
                 # sample frequency in units of [1/s]
                 fs = 1/rate #if side == 'Arctic' else 1
 
-                nperseg = 1800//rate #if side == 'Arctic' else 1800
-                noverlap = 1200//rate #if side == 'Arctic' else 1200
+                nperseg = 1800//rate  #if side == 'Arctic' else 1800
+                noverlap = 1200//rate  #if side == 'Arctic' else 1200
 
                 f, t, Zxx = stft(y - np.mean(y), fs=fs, nperseg=nperseg, noverlap=noverlap)
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
@@ -822,8 +825,8 @@ def magspect(
                     # y-axis labels and ticks
                     if is_verbose:
                         print('Setting y-axis color for time domain plot.')
-                    ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color = color)
-                    ax2.tick_params(axis ='y', labelcolor = color)
+                    ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color=color)
+                    ax2.tick_params(axis='y', labelcolor=color)
 
                 if events is not None:
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
@@ -846,7 +849,7 @@ def magspect(
     fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter), fontsize=30)  # Title the plot...
     if is_saved:
         fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' + str(end) + '_' + str(parameter) + '.png'
-        fname = fname.replace(":", "") # Remove colons from timestamps
+        fname = fname.replace(":", "")  # Remove colons from timestamps
         print("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
@@ -859,11 +862,11 @@ def wavepwr(station_id,
             parameter,         # Bx, By or Bz
             start,
             end,
-            f_lower = 1.667,    # freq threshold in mHz (600 secs => 1.667 mHz)
-            f_upper = 6.667,    # freq threshold in mHz (150 secs => 6.667 mHz)
-            is_saved = False,
-            is_verbose = False,
-            is_detrended = True
+            f_lower=1.667,    # freq threshold in mHz (600 secs => 1.667 mHz)
+            f_upper=6.667,    # freq threshold in mHz (150 secs => 6.667 mHz)
+            is_saved=False,
+            is_verbose=False,
+            is_detrended=True
             ):
     """Function to determine Pc5 (by default) wave power for a given
         magnetometer, parameter and time frame.
@@ -904,20 +907,21 @@ def wavepwr(station_id,
 
         start = datetime.datetime(2019, 8, 2, 0, 0, 0)
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
-        wavepwr('pg4', parameter = 'Bx', start = start, end = end,is_verbose=False)
+        wavepwr('pg4', parameter = 'Bx', start = start,
+                 end = end,is_verbose=False)
     """
     magname = station_id.lower()
     all_the_data = magdf(
         start=start,
         end=end,
-        maglist_a=[magname], # does not need to be an Arctic magnetometer
+        maglist_a=[magname],  # does not need to be an Arctic magnetometer
         maglist_b=[],
         is_detrended=is_detrended,
         is_saved=is_saved,
         is_verbose=is_verbose
     )
 
-    win = 0 # preallocate
+    win = 0  # preallocate
     # print(magname)
     try:
         if is_verbose:
@@ -959,22 +963,22 @@ def wavepwr(station_id,
 
 ###############################################################################
 def wavefig(
-    stations="",  # dataframe
-    parameter="Bx",
-    start=datetime.datetime(2016, 1, 25, 0, 0, 0),
-    end=datetime.datetime(2016, 1, 26, 0, 0, 0),
-    maglist_a=["upn", "umq", "gdh", "atu", "skt", "ghb"],
-    maglist_b=["pg0", "pg1", "pg2", "pg3", "pg4", "pg5"],
-    f_lower=1.667,  # frequency threshold in mHz
-    f_upper=6.667,  # frequency threshold in mHz
-    is_maglist_only=True,
-    is_detrended = True,
-    is_displayed=True,
-    is_saved=False,
-    fstem = "",
-    is_data_saved=False,
-    is_verbose=False,
-):
+        stations="",  # dataframe
+        parameter="Bx",
+        start=datetime.datetime(2016, 1, 25, 0, 0, 0),
+        end=datetime.datetime(2016, 1, 26, 0, 0, 0),
+        maglist_a=["upn", "umq", "gdh", "atu", "skt", "ghb"],
+        maglist_b=["pg0", "pg1", "pg2", "pg3", "pg4", "pg5"],
+        f_lower=1.667,  # frequency threshold in mHz
+        f_upper=6.667,  # frequency threshold in mHz
+        is_maglist_only=True,
+        is_detrended = True,
+        is_displayed=True,
+        is_saved=False,
+        fstem="",
+        is_data_saved=False,
+        is_verbose=False,
+    ):
     """Function to create wave power plot for a given set of magnetometers.
 
     Arguments
@@ -1063,7 +1067,7 @@ def wavefig(
             f_upper=f_upper,
             is_saved=is_saved,
             is_verbose=is_verbose,
-            is_detrended = is_detrended
+            is_detrended=is_detrended
         ),
         axis=1,
     )
@@ -1137,8 +1141,10 @@ def wavefig(
         plt.show()
 
     if is_saved:
-        fname = "output/" + fstem +f"WavePower_{start}_to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
-        fname = fname.replace(":", "") # Remove colons from timestamps
+        fname = f"""output/{fstem}WavePower_{start}_/to_{end}_
+                {f_lower}mHz to {f_upper}mHz_{parameter}.png"""
+        # fname = "output/" + fstem +f"WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
+        fname = fname.replace(":", "")  # Remove colons from timestamps
         if is_verbose:
             print(f"Saving figure: {fname}")
         plt.savefig(fname)
@@ -1146,25 +1152,25 @@ def wavefig(
     return fig
 
 
-################################################################################################################################
+###############################################################################
 
 def magall(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
-    f_lower = 1.667,        # frequency threshold in mHz
-    f_upper = 6.667,     # frequency threshold in mHz
-    is_detrended = True,
+    f_lower=1.667,        # frequency threshold in mHz
+    f_upper=6.667,     # frequency threshold in mHz
+    is_detrended=True,
     is_displayed=False,
     is_saved=True,
-    fstem = "",
+    fstem="",
     is_verbose=False,
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
     myFmt=mdates.DateFormatter('%H:%M'),
-    stations = "",
-    is_maglist_only = True
+    stations="",
+    is_maglist_only=True
 ):
     """
     Function to create all plots for conjugate magnetometers in a given
@@ -1240,21 +1246,21 @@ def magall(
         if is_verbose:
             print('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
-               maglist_b = maglist_b, is_displayed = is_displayed,
-               is_saved = is_saved, fstem = fstem, events = events)
+               maglist_b=maglist_b, is_displayed=is_displayed,
+               is_saved=is_saved, fstem = fstem, events = events)
         if is_verbose:
             print('Saving spectrogram plot.')
-        magspect(parameter = parameter, start = start, end = end,
-                 maglist_a = maglist_a, maglist_b = maglist_b,
-                 is_displayed = is_displayed, is_verbose = is_verbose,
-                 is_saved = is_saved, fstem = fstem,
-                 # events = events,
-                 event_fontdict = event_fontdict, myFmt = myFmt)
+        magspect(parameter=parameter, start=start, end=end,
+                 maglist_a=maglist_a, maglist_b=maglist_b,
+                 is_displayed=is_displayed, is_verbose=is_verbose,
+                 is_saved=is_saved, fstem=fstem,
+                 # events=events,
+                 event_fontdict=event_fontdict, myFmt=myFmt)
         if is_verbose:
             print('Generating wave power plot.')
-        wavefig(stations = stations, parameter = parameter, start = start,
-                end = end, maglist_a = maglist_a, maglist_b = maglist_b,
-                f_lower = f_lower, f_upper = f_upper,
-                is_maglist_only = is_maglist_only,
-                is_displayed = is_displayed, is_saved = is_saved,
-                fstem = fstem, is_verbose = is_verbose)
+        wavefig(stations=stations, parameter=parameter, start=start,
+                end=end, maglist_a=maglist_a, maglist_b=maglist_b,
+                f_lower=f_lower, f_upper=f_upper,
+                is_maglist_only=is_maglist_only,
+                is_displayed=is_displayed, is_saved=is_saved,
+                fstem=fstem, is_verbose=is_verbose)
