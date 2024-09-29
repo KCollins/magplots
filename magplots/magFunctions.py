@@ -236,6 +236,7 @@ def magfetch(
     Example Use
     ------------
     Generates dataframe for ATU::
+
             magfetch(start = datetime.datetime(2018, 9, 4, 0, 0, 0),
                         end = datetime.datetime(2018, 9, 5, 0, 0, 0),
                         magname = 'atu',
@@ -537,7 +538,7 @@ def magfig(
                 axs[idx].set_ylim(ylims)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
             axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color=color)
-            axs[idx].tick_params(axis ='y', labelcolor = color)
+            axs[idx].tick_params(axis='y', labelcolor = color)
 
             if events is not None:
                 # print('Plotting events...')
@@ -752,19 +753,20 @@ def magspect(
                 # sampling rate in units of [s]
                 rate = 10
                 # sample frequency in units of [1/s]
-                fs = 1/rate #if side == 'Arctic' else 1
+                fs = 1/rate  # if side == 'Arctic' else 1
 
-                nperseg = 1800//rate  #if side == 'Arctic' else 1800
-                noverlap = 1200//rate  #if side == 'Arctic' else 1200
+                nperseg = 1800//rate  # if side == 'Arctic' else 1800
+                noverlap = 1200//rate  # if side == 'Arctic' else 1200
 
-                f, t, Zxx = stft(y - np.mean(y), fs=fs, nperseg=nperseg, noverlap=noverlap)
+                f, t, zxx = stft(y - np.mean(y), fs=fs,
+                                 nperseg=nperseg, noverlap=noverlap)
                 dt_list = [start + datetime.timedelta(seconds=ii) for ii in t]
 
                 axs[idx, sideidx].grid(False)
                 if is_logcolor:
                     # Create a logarithmic norm for the colormap
-                    vmin=np.abs(Zxx).min()
-                    vmax=np.abs(Zxx).max()
+                    vmin = np.abs(zxx).min()
+                    vmax = np.abs(zxx).max()
                     if is_verbose:
                         print(vmin, vmax)
                     if vmin == 0:
@@ -774,15 +776,15 @@ def magspect(
                     norm = colors.LogNorm(vmin=vmin, vmax=vmax)
                     # Plot the spectrogram with the logarithmic norm
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
-                                                        np.abs(Zxx) * np.abs(Zxx),
+                                                        np.abs(zxx) * np.abs(zxx),
                                                         norm=norm, cmap=colormap
                                                         )
                 else:
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
-                                                        np.abs(Zxx) * np.abs(Zxx),
+                                                        np.abs(zxx) * np.abs(zxx),
                                                         vmin=0, vmax=0.5,
                                                         cmap=colormap)  # may produce BW plot
-                    # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
+                    # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(zxx) * np.abs(zxx)) # force colormap
                 axs[idx, sideidx].set_ylim([1, 20])  # y-axis limits for spectrogram
                 axs[idx, sideidx].set_xlabel('Time')
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)')
@@ -932,7 +934,7 @@ def wavepwr(station_id,
         data = all_data[all_data['Magnetometer'] == magname.upper()]
         x = data['UT']
         y = data[parameter]
-        y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
+        y = reject_outliers(y)  # Remove power cycling artifacts on, e.g., PG2.
         y = fill_nan(y)
         y = y - np.nanmean(y)  # Detrend
 
@@ -1055,7 +1057,7 @@ def wavefig(
 
     if is_maglist_only:
         if is_verbose:
-            print("Culling to only stations listed in maglist_a and maglist_b.")
+            print("Cull to only stations listed in maglist_a and maglist_b.")
         stations = stations[
             stations.IAGA.isin([item.upper() for item in maglist_a + maglist_b])
         ]  # Plot only the polar stations

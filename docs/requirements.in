@@ -6,3 +6,5 @@ ai.cdas
 datetime
 scipy
 plotly.express
+Sphinx>=5,<6
+sphinx_rtd_theme
