@@ -944,17 +944,21 @@ def wavepwr(station_id,
         win = hann(nblock, True)
 
         # f, Pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
-        f, Pxxf = welch(datos, fs, window=win, return_onesided=True, detrend=False)
+        f, Pxxf = welch(datos, fs, window=win,
+                        return_onesided=True, detrend=False)
         pwr = Pxxf[3]
         if is_verbose:
-            print(Pxxf[((f>=f_lower/1000) & (f_upper<=3/1000))])
+            print(Pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
         if is_verbose:
-            print(magname.upper() + ': The estimated power from ' + str(f_lower) + ' mHz to '+ str(f_upper) + ' mHz is ' + str(pwr) + ' nT/Hz^(1/2)')
+            print(magname.upper() + ': The estimated power from \
+                ' + str(f_lower) + ' mHz to '+ str(f_upper) + ' mHz is \
+                ' + str(pwr) + ' nT/Hz^(1/2)')
         return pwr
-    except Exception as e:
+    except ValueError as e:
         print(e)
         if is_verbose:
-            print('Window length: ' + str(len(win)) +'\n Signal length: ' + str(len(y)))  # usually this is the issue.
+            print('Window length: ' + str(len(win)) +'\n \
+            Signal length: ' + str(len(y)))  # usually this is the issue.
         return 'Error'
 
 
