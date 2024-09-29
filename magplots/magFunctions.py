@@ -783,8 +783,9 @@ def magspect(
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
                                                         np.abs(zxx) * np.abs(zxx),
                                                         vmin=0, vmax=0.5,
-                                                        cmap=colormap)  # may produce BW plot
-                    # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(zxx) * np.abs(zxx)) # force colormap
+                                                        cmap=colormap)
+                    # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
+                    # np.abs(zxx) * np.abs(zxx)) # force colormap
                 axs[idx, sideidx].set_ylim([1, 20])  # y-axis limits for spectrogram
                 axs[idx, sideidx].set_xlabel('Time')
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)')
