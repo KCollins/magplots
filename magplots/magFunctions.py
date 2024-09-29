@@ -19,7 +19,7 @@ from scipy.signal import welch
 from scipy.signal.windows import hann
 
 # For spectrograms:
-import matplotlib.colors as colors
+from matplotlib import colors
 
 ###############################################################################
 
@@ -41,8 +41,8 @@ def fill_nan(y):
     ------------
     Creates a 1D array with NaNs and removes them::
 
-        y = np.array([40, 41, np.nan, 43, np.nan, 41])
-        fill_nan(y)
+            y = np.array([40, 41, np.nan, 43, np.nan, 41])
+            fill_nan(y)
 
     """
 
@@ -86,7 +86,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
     ------------
     Creates a 1D array with outliers and removes them::
 
-        reject_outliers(np.append(y, [-51e100, 41, 2, 45], axis=0))
+            reject_outliers(np.append(y, [-51e100, 41, 2, 45], axis=0))
 
     """
     mean = np.mean(y)
@@ -130,7 +130,7 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     ------------
     Save the password locally in the file `tgopw.txt.`
     Run::
-        magfetchtgo(is_verbose=True))
+            magfetchtgo(is_verbose=True))
 
     """
 
@@ -236,12 +236,12 @@ def magfetch(
     Example Use
     ------------
     Generates dataframe for ATU::
-        magfetch(start = datetime.datetime(2018, 9, 4, 0, 0, 0),
-                    end = datetime.datetime(2018, 9, 5, 0, 0, 0),
-                    magname = 'atu',
-                    resolution = '1sec',
-                    is_verbose = True
-                )
+            magfetch(start = datetime.datetime(2018, 9, 4, 0, 0, 0),
+                        end = datetime.datetime(2018, 9, 5, 0, 0, 0),
+                        magname = 'atu',
+                        resolution = '1sec',
+                        is_verbose = True
+                    )
 
     """
 
@@ -339,7 +339,7 @@ def magdf(
     ------------
     Generates dataframe with default values::
 
-    df = magdf(is_verbose = True, is_saved = True)
+        df = magdf(is_verbose = True, is_saved = True)
     """
     # Magnetometer parameter dict so we don't have to type the full string:
     d = {'Bx': 'MAGNETIC_NORTH_-_H',
@@ -347,30 +347,30 @@ def magdf(
          'Bz': 'VERTICAL_DOWN_-_Z'
          }
 
-    d_i = dict((v, k) for k, v in d.items()) # inverted map for col renaming later
+    d_i = dict((v, k) for k, v in d.items()) # for col renaming later
     if is_saved:
-        fname = 'output/' +str(start) + '_to_' + str(end) + '_'
+        fname = 'output/' + str(start) + '_to_' + str(end) + '_'
         if is_pivoted:
             fname = fname + 'pivoted_'
         if is_uniform:
             fname = fname + 'uniform'
         fname = fname + '.csv'
-        fname = fname.replace(":", "") # Remove colons from timestamps
+        fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
             if is_verbose:
                 print('Looks like ' + fname + ' has already been generated. \
                         Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
-    UT = pd.date_range(start, end, freq='s')   # preallocate time range
-    full_df = pd.DataFrame(UT, columns=['UT'])   # preallocate dataframe
-    full_df['UT'] = full_df['UT'].astype('datetime64[s]') # enforce 1s precision
+    ut = pd.date_range(start, end, freq='s')   # preallocate time range
+    full_df = pd.DataFrame(ut, columns=['UT'])   # preallocate dataframe
+    full_df['UT'] = full_df['UT'].astype('datetime64[s]')  # force 1s precision
     full_df['Magnetometer'] = ""
     for mags in [maglist_a, maglist_b]:
-        for idx, magname in enumerate(mags):
+        for magname in enumerate(mags):
             if is_verbose:
                 print('Pulling data for magnetometer: ' + magname.upper())
             # try:
-            df = magfetch(start, end, magname, is_detrended = is_detrended)
+            df = magfetch(start, end, magname, is_detrended=is_detrended)
             df = pd.DataFrame.from_dict(df)
             df.rename(columns=d_i, inplace=True)    # mnemonic column names
 
@@ -383,7 +383,7 @@ def magdf(
             #     continue
     full_df['UT'] = full_df['UT'].astype('datetime64[s]')  # enforce 1s
     full_df = full_df[full_df['Magnetometer'] != '']  # drop empty rows
-    full_df = full_df.drop(['UT_1'], # drop extraneous columns
+    full_df = full_df.drop(['UT_1'],  # drop extraneous columns
                            axis=1,
                            errors='ignore'  # only some stations have this column
                            )
@@ -500,7 +500,8 @@ def magfig(
             print('Looks like ' + fname + ' has already been generated.')
             return
             # raise Exception('This file has already been generated.')
-    fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25), constrained_layout=True)
+    fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25),
+                            constrained_layout=True)
     print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
 
     all_the_data = magdf(
@@ -520,8 +521,8 @@ def magfig(
             x = data['UT']
             y = data[parameter]
             color = 'tab:blue'
-            y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
-            axs[idx].plot(x,y, color=color)#x, y)
+            y = reject_outliers(y)  # Remove power cycling artifacts on PG2.
+            axs[idx].plot(x, y, color=color)
 
             if ~is_autoscaled:
                 # Adjust y-axis limits around mean:
@@ -555,7 +556,8 @@ def magfig(
             #  Corresponding Antarctic mag data on same plot...
             magname = maglist_b[idx]
             ax2 = axs[idx].twinx()
-            print('Plotting data for Antarctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
+            print('Plotting data for Antarctic magnetometer #' +
+                  str(idx+1) + ': ' + magname.upper())
             data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
             x = data['UT']
             y = data[parameter]
@@ -587,7 +589,7 @@ def magfig(
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
-        return fig 
+        return fig
 
 
 ###############################################################################
