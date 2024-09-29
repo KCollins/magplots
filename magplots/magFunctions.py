@@ -755,7 +755,7 @@ def magspect(
                 noverlap = 1200//rate  #if side == 'Arctic' else 1200
 
                 f, t, Zxx = stft(y - np.mean(y), fs=fs, nperseg=nperseg, noverlap=noverlap)
-                dt_list = [start + datetime.timedelta(seconds=ii) for ii in t] # TODO
+                dt_list = [start + datetime.timedelta(seconds=ii) for ii in t]
 
                 axs[idx, sideidx].grid(False)
                 if is_logcolor:
@@ -775,12 +775,16 @@ def magspect(
                                                         norm=norm, cmap=colormap
                                                         )
                 else:
-                    cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx), vmin=0, vmax=0.5, cmap = colormap) # may produce BW plot
+                    cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
+                                                        np.abs(Zxx) * np.abs(Zxx),
+                                                        vmin=0, vmax=0.5,
+                                                        cmap=colormap)  # may produce BW plot
                     # cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000., np.abs(Zxx) * np.abs(Zxx)) # force colormap
-                axs[idx, sideidx].set_ylim([1, 20])  # Set y-axis limits for spectrogram
+                axs[idx, sideidx].set_ylim([1, 20])  # y-axis limits for spectrogram
                 axs[idx, sideidx].set_xlabel('Time')
                 axs[idx, sideidx].set_ylabel('Frequency (Hz)')
-                axs[idx, sideidx].set_title('STFT Power Spectrum: ' + magname.upper() + ' — ' + parameter)
+                axs[idx, sideidx].set_title('STFT Power Spectrum: ' +
+                                            magname.upper()+' — '+parameter)
                 # Add a colorbar
                 cbar = plt.colorbar(cmap, ax=axs[idx, sideidx])
                 cbar.set_label('Power Spectral Density')
@@ -795,7 +799,7 @@ def magspect(
                     # Create a new twin axis for the time domain plot
                     ax2 = axs[idx, sideidx].twinx()
 
-                    # Plot the time domain data on the twin axis - adjust color, label
+                    # Plot time domain on the twin axis - adjust color, label
                     ax2.plot(x, y, color=color, alpha=0.7, label=parameter)
 
                     # Adjust x-axis limits to match spectrogram
@@ -805,7 +809,8 @@ def magspect(
                         # Adjust y-axis limits around mean:
                         median = np.median(y)
                         if is_verbose:
-                            print('Adjusting y-axis limits. Median: ' + str(median))
+                            print('Adjusting y-axis limits. Median: ' +
+                                  str(median))
                         ylims = [val+median for val in ylim]
                         if is_verbose:
                             print(ylims)
@@ -827,17 +832,20 @@ def magspect(
 
                         axs[idx, sideidx].axvline(evt_dtime, lw=1, ls='--', color=evt_color)
                         if evt_label is not None:
-                            axs[idx, sideidx].text(evt_dtime, 0.01, evt_label, transform=trans,
-                                                   rotation=90, fontdict=event_fontdict, color=evt_color,
+                            axs[idx, sideidx].text(evt_dtime, 0.01, evt_label,
+                                                   transform=trans, rotation=90,
+                                                   fontdict=event_fontdict,
+                                                   color=evt_color,
                                                    va='bottom', ha='left')
 
             except ValueError as e:
                 print(e)
                 continue
 
-    fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter), fontsize=30)  # Title the plot...
+    fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter),
+                 fontsize=30)  # Title the plot...
     if is_saved:
-        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' + str(end) + '_' + str(parameter) + '.png'
+        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' +str(end) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "")  # Remove colons from timestamps
         print("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
@@ -1234,12 +1242,14 @@ def magall(
         if is_verbose:
             print('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
-               maglist_b=maglist_b, is_displayed=is_displayed,
+               maglist_b=maglist_b, is_detrended=is_detrended,
+               is_displayed=is_displayed,
                is_saved=is_saved, fstem = fstem, events = events)
         if is_verbose:
             print('Saving spectrogram plot.')
         magspect(parameter=parameter, start=start, end=end,
                  maglist_a=maglist_a, maglist_b=maglist_b,
+                 is_detrended=is_detrended,
                  is_displayed=is_displayed, is_verbose=is_verbose,
                  is_saved=is_saved, fstem=fstem,
                  # events=events,
@@ -1250,5 +1260,6 @@ def magall(
                 end=end, maglist_a=maglist_a, maglist_b=maglist_b,
                 f_lower=f_lower, f_upper=f_upper,
                 is_maglist_only=is_maglist_only,
+                is_detrended=is_detrended,
                 is_displayed=is_displayed, is_saved=is_saved,
                 fstem=fstem, is_verbose=is_verbose)
