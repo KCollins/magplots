@@ -13,13 +13,11 @@ from ai import cdas
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib import colors
 
 from scipy.signal import stft
 from scipy.signal import welch
 from scipy.signal.windows import hann
-
-# For spectrograms:
-from matplotlib import colors
 
 ###############################################################################
 
@@ -97,7 +95,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
 
 
 def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
-    is_verbose=False, is_url_printed=False):
+                is_verbose=False, is_url_printed=False):
     """Pulls Tromsø Geophysical Observatory data from a RESTful API with a link
          based on the date.
 
@@ -154,7 +152,8 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
         if is_url_printed:
             print(url)
         # Fetch the data for the current day
-        dayframe = pd.read_csv(url, skiprows=6, sep=r"\s+", usecols=range(5), index_col=False)
+        dayframe = pd.read_csv(url, skiprows=6, sep=r"\s+",
+                               usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
         dayframe['DD/MM/YYYY HH:MM:SS'] = dayframe['DD/MM/YYYY'] + ' ' + dayframe['HH:MM:SS']
         dayframe['UT'] = pd.to_datetime(dayframe['DD/MM/YYYY HH:MM:SS'], format='%d/%m/%Y %H:%M:%S')
@@ -187,9 +186,10 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     if data['MAGNETIC_NORTH_-_H'][1] == 999.9999:
         print("WARNING: Data for " + magname.upper() + " on " + str(start) + "\
             may not be available.\n  Check your parameters and verify \
-            magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html.")
-    # print(type(df))
-    # return df
+            magnetometer coverage at \
+            https://flux.phys.uit.no/coverage/indexDTU.html.")
+    if is_verbose:
+        print("Data collected from " + magname)
     return data
 
 ###############################################################################
@@ -273,11 +273,13 @@ def magfetch(
         )
 
     if is_verbose:
-        print("Data for", magname.upper(), "collected:", len(data["UT"]), "samples.")
+        print("Data for", magname.upper(), "collected:", len(data["UT"]), "\
+              samples.")
     if is_detrended:
         if is_verbose:
             print('Detrending data - subtracting the median.')
-        for a in ['MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E', 'VERTICAL_DOWN_-_Z']:
+        for a in ['MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E',
+                  'VERTICAL_DOWN_-_Z']:
             data[a] -= np.median(data[a])
 
 
@@ -385,7 +387,7 @@ def magdf(
     full_df = full_df[full_df['Magnetometer'] != '']  # drop empty rows
     full_df = full_df.drop(['UT_1'],  # drop extraneous columns
                            axis=1,
-                           errors='ignore'  # only some stations have this column
+                           errors='ignore'  # only some stations have this
                            )
     df_pivoted = full_df.pivot(index='UT', columns='Magnetometer',
                                values=['Bx', 'By', 'Bz'])
@@ -504,7 +506,7 @@ def magfig(
                             constrained_layout=True)
     print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
 
-    all_the_data = magdf(
+    all_data = magdf(
         start=start,
         end=end,
         maglist_a=maglist_a,
@@ -517,7 +519,7 @@ def magfig(
     for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
         print('Plotting data for Arctic magnetometer #' + str(idx+1) + ': ' + magname.upper())
         try:
-            data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
+            data = all_data[all_data['Magnetometer'] == magname.upper()]
             x = data['UT']
             y = data[parameter]
             color = 'tab:blue'
@@ -558,7 +560,7 @@ def magfig(
             ax2 = axs[idx].twinx()
             print('Plotting data for Antarctic magnetometer #' +
                   str(idx+1) + ': ' + magname.upper())
-            data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
+            data = all_data[all_data['Magnetometer'] == magname.upper()]
             x = data['UT']
             y = data[parameter]
 
@@ -702,7 +704,8 @@ def magspect(
     if is_uniform is False:
         print("Warn: Scaling won't work correctly without uniform sampling.")
     if is_saved:
-        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + '_'+ str(parameter) + '.png'
+        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + '_' + \
+                str(parameter) + '.png'
         fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
@@ -714,7 +717,7 @@ def magspect(
     print('Plotting data for ' + str(len(maglist_a)) +
           ' magnetometers: ' + str(start))
 
-    all_the_data = magdf(start=start,
+    all_data = magdf(start=start,
                          end=end,
                          maglist_a=maglist_a,
                          maglist_b=maglist_b,
@@ -724,8 +727,8 @@ def magspect(
                          is_saved=is_saved,
                          is_verbose=is_verbose)
     if is_verbose:
-        print(all_the_data.head(10))
-    # assert all_the_data.shape[1] == 5
+        print(all_data.head(10))
+    # assert all_data.shape[1] == 5
 
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
         for idx, magname in enumerate(maglist):
@@ -733,7 +736,7 @@ def magspect(
                   str(idx + 1) + ': ' + magname.upper())
 
             try:
-                data = all_the_data[all_the_data["Magnetometer"] == magname.upper()]
+                data = all_data[all_data["Magnetometer"] == magname.upper()]
                 assert data.shape[0] > 0
                 assert data.shape[1] == 5
                 x = data['UT']
@@ -845,7 +848,8 @@ def magspect(
     fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter),
                  fontsize=30)  # Title the plot...
     if is_saved:
-        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' +str(end) + '_' + str(parameter) + '.png'
+        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' + \
+                str(end) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "")  # Remove colons from timestamps
         print("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
@@ -908,7 +912,7 @@ def wavepwr(station_id,
                  end = end,is_verbose=False)
     """
     magname = station_id.lower()
-    all_the_data = magdf(
+    all_data = magdf(
         start=start,
         end=end,
         maglist_a=[magname],  # does not need to be an Arctic magnetometer
@@ -925,7 +929,7 @@ def wavepwr(station_id,
             print('Checking wave power for magnetometer '
                   + magname.upper() + ' between ' + str(start) +
                   ' and ' + str(end) + '.')
-        data = all_the_data[all_the_data['Magnetometer'] == magname.upper()]
+        data = all_data[all_data['Magnetometer'] == magname.upper()]
         x = data['UT']
         y = data[parameter]
         y = reject_outliers(y) # Remove power cycling artifacts on, e.g., PG2.
@@ -943,21 +947,21 @@ def wavepwr(station_id,
         overlap = 30
         win = hann(nblock, True)
 
-        # f, Pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
-        f, Pxxf = welch(datos, fs, window=win,
+        # f, pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
+        f, pxxf = welch(datos, fs, window=win,
                         return_onesided=True, detrend=False)
-        pwr = Pxxf[3]
+        pwr = pxxf[3]
         if is_verbose:
-            print(Pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
+            print(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
         if is_verbose:
             print(magname.upper() + ': The estimated power from \
-                ' + str(f_lower) + ' mHz to '+ str(f_upper) + ' mHz is \
+                ' + str(f_lower) + ' mHz to ' + str(f_upper) + ' mHz is \
                 ' + str(pwr) + ' nT/Hz^(1/2)')
         return pwr
     except ValueError as e:
         print(e)
         if is_verbose:
-            print('Window length: ' + str(len(win)) +'\n \
+            print('Window length: ' + str(len(win)) + '\n \
             Signal length: ' + str(len(y)))  # usually this is the issue.
         return 'Error'
 
