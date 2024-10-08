@@ -1,0 +1,28 @@
+{
+    "keywords": [
+	"magnetic field",
+  "magnetometer",
+  "ULF",
+  "wave power",
+	"conjugate",
+	"conjugacy",
+	"ionosphere",
+	"atmosphere",
+	"thermosphere",
+	"magnetosphere",
+	"heliosphere",
+	"analysis"
+    ],
+    "creators": [
+      {
+        "affiliation": "Space Science Institute",
+        "name": "Kristina Collins",
+        "orcid": "0000-0002-3816-1948"
+      },
+      {
+	"orcid": "0000-0002-3682-9334, 
+        "affiliation": "National Institute of Standards and Technology", 
+        "name": "Aidan Montare"
+      },
+    ]
+}
