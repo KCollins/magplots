@@ -9,6 +9,7 @@ import pandas as pd
 
 # For pulling data from CDAweb:
 from ai import cdas
+from ai.cdas import NoDataError
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
@@ -151,16 +152,16 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     # Loop over each day from start to end
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
-        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site\={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + "&format=XYZhtml&comps=DHZ&getdata=+Get+Data"
+        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + "&format=XYZhtml&comps=DHZ&getdata=+Get+Data"  # noqa: E501, W605
         if is_url_printed:
-            print(url)
+            logger.info(url)
         # Fetch the data for the current day
         dayframe = pd.read_csv(url, skiprows=6, sep=r"\s+",
                                usecols=range(5), index_col=False)
         # Convert the 'DD/MM/YYYY HH:MM:SS' column to datetime format
-        dayframe['DD/MM/YYYY HH:MM:SS'] = dayframe['DD/MM/YYYY'] + ' ' + dayframe['HH:MM:SS']
-        dayframe['UT'] = pd.to_datetime(dayframe['DD/MM/YYYY HH:MM:SS'], format='%d/%m/%Y %H:%M:%S')
-        dayframe = dayframe[(dayframe['UT'] >= start) & (dayframe['UT'] <= end)]
+        dayframe['DD/MM/YYYY HH:MM:SS'] = dayframe['DD/MM/YYYY'] + ' ' + dayframe['HH:MM:SS']  # noqa: E501
+        dayframe['UT'] = pd.to_datetime(dayframe['DD/MM/YYYY HH:MM:SS'], format='%d/%m/%Y %H:%M:%S')  # noqa: E501
+        dayframe = dayframe[(dayframe['UT'] >= start) & (dayframe['UT'] <= end)]  # noqa: E501
         # Rename the columns
         dayframe.rename(columns={
                                     'X': 'MAGNETIC_NORTH_-_H',
@@ -187,11 +188,8 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     data['UT'] = data['UT'].to_pydatetime()
 
     if data['MAGNETIC_NORTH_-_H'][1] == 999.9999:
-        logging.warn("WARNING: Data for " + magname.upper() + " on " + str(start) + "\
-            may not be available.\n  Check your parameters and verify \
-            magnetometer coverage at \
-            https://flux.phys.uit.no/coverage/indexDTU.html.")
-    logging.info("Data collected from " + magname)
+        logging.warning("WARNING: Data for " + magname.upper() + " on " + str(start) + "may not be available.\n  Check your parameters and verify magnetometer coverage at https://flux.phys.uit.no/coverage/indexDTU.html.")  # noqa: E501
+    logging.info("Data collected from TGO for {}".magname)
     return data
 
 ###############################################################################
@@ -201,7 +199,7 @@ def magfetch(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     magname="atu",
-    is_detrended = True,
+    is_detrended=True,
     is_verbose=False,
     tgopw="",
     resolution="10sec",
@@ -263,21 +261,24 @@ def magfetch(
                            resolution=resolution, is_verbose=is_verbose)
     else:  # Use CDAWeb
         logging.info("Collecting data for {} from CDAWeb.".format(magname.upper()))
-        data = cdas.get_data(
-            "sp_phys",
-            "THG_L2_MAG_" + magname.upper(),
-            start,
-            end,
-            ["thg_mag_" + magname],
-        )
-
-    num_samples = len(data.get("UT", []))  # Handle potential KeyError
-    logging.info(f"Data for {magname.upper()}: {num_samples} samples.")
-    if is_detrended:
-        logging.info('Detrending data - subtracting the median.')
-        for a in ['MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E',
-                  'VERTICAL_DOWN_-_Z']:
-            data[a] -= np.median(data[a])
+        try:
+            data = cdas.get_data(
+                "sp_phys",
+                "THG_L2_MAG_" + magname.upper(),
+                start,
+                end,
+                ['thg_mag_' + magname],
+            )
+        except NoDataError:
+            logging.info("No data found on CDAWeb for {}.".format(magname.upper()))
+        else:
+            logging.info("Data for %s: %d samples.", magname.upper(), len(data.get("UT", [])))  # noqa: E501
+            if is_detrended:
+                logging.info('Detrending data - subtracting the median.')
+                for a in ['MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E',
+                          'VERTICAL_DOWN_-_Z']:
+                    data[a] -= np.median(data[a])
+        return data
 
 
 ###############################################################################
@@ -366,18 +367,16 @@ def magdf(
     for mags in [maglist_a, maglist_b]:
         for idx, magname in enumerate(mags):
             logging.info('Pulling data for magnetometer: ' + str(magname).upper())
-            # try:
-            df = magfetch(start, end, magname, is_detrended=is_detrended)
-            df = pd.DataFrame.from_dict(df)
-            df.rename(columns=d_i, inplace=True)    # mnemonic column names
-
-            df['Magnetometer'] = magname.upper()
-            full_df = pd.concat([full_df, df])
-
-            # print(df)
-            # except Exception as e:
-            #     print(e)
-            #     continue
+            try:
+                df = magfetch(start, end, magname, is_detrended=is_detrended)
+                df = pd.DataFrame.from_dict(df)
+                df.rename(columns=d_i, inplace=True)    # mnemonic column names
+    
+                df['Magnetometer'] = magname.upper()
+                full_df = pd.concat([full_df, df])
+            except Exception as e:
+                logging.info(e)
+                continue
     full_df['UT'] = full_df['UT'].astype('datetime64[s]')  # enforce 1s
     full_df = full_df[full_df['Magnetometer'] != '']  # drop empty rows
     full_df = full_df.drop(['UT_1'],  # drop extraneous columns
@@ -393,7 +392,7 @@ def magdf(
         logging.info('Discarding NaN rows.')
         df_pivoted = df_pivoted.dropna()
         if not is_pivoted:
-            print('Returning to original format.')
+            logger.info('Returning dataframe to original format.')
             full_df = df_pivoted.unstack(level=1).unstack().unstack().transpose()
             full_df = full_df.reset_index()
         logging.info('Dataframe shape: ' + str(full_df.shape))
@@ -490,12 +489,12 @@ def magfig(
         fname = 'output/'+ fstem + str(start) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "") # Remove colons from timestamps
         if os.path.exists(fname):
-            print('Looks like ' + fname + ' has already been generated.')
+            logger.info('Looks like ' + fname + ' has already been generated.')
             return
             # raise Exception('This file has already been generated.')
     fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25),
                             constrained_layout=True)
-    print('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
+    logger.info('Plotting data for ' + str(len(maglist_a)) + ' magnetometers: ' + str(start))
 
     all_data = magdf(
         start=start,
@@ -569,12 +568,12 @@ def magfig(
             ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             ax2.tick_params(axis='y', labelcolor=color)
         except NoDataError as e:
-            print("No data found for " + magname + ".")
+            logger.info("No data found for " + magname + ".")
             continue
     if is_titled:
-        fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)
+        fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)  # noqa: E501
     if is_saved:
-        print("Saving figure. " + fname)
+        logger.info("Saving figure. " + fname)
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
@@ -689,7 +688,7 @@ def magspect(
         magspect(start=start, end=end, is_verbose = False)
     """
     if is_uniform is False:
-        print("Warn: Scaling won't work correctly without uniform sampling.")
+        logger.warning("Warn: Scaling won't work correctly without uniform sampling.")
     if is_saved:
         fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + '_' + \
                 str(parameter) + '.png'
@@ -701,8 +700,7 @@ def magspect(
 
     fig, axs = plt.subplots(len(maglist_a), 2,
                             figsize=(25, 25), constrained_layout=True)
-    print('Plotting data for ' + str(len(maglist_a)) +
-          ' magnetometers: ' + str(start))
+    logger.info('Plotting data for ' + str(len(maglist_a)) +' magnetometers: ' + str(start))
 
     all_data = magdf(start=start,
                          end=end,
@@ -823,8 +821,8 @@ def magspect(
                                                    va='bottom', ha='left')
 
             except ValueError as e:
-                print("Error in magspect.")
-                print(e)
+                logger.warning("Error in magspect.")
+                logger.info(e)
                 continue
 
     fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter),
@@ -833,7 +831,7 @@ def magspect(
         fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' + \
                 str(end) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "")  # Remove colons from timestamps
-        print("Saving figure. " + fname)
+        logger.info("Saving figure. " + fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:
         return fig
@@ -907,9 +905,7 @@ def wavepwr(station_id,
     win = 0  # preallocate
     # print(magname)
     try:
-        logging.info('Checking wave power for magnetometer '
-                  + magname.upper() + ' between ' + str(start) +
-                  ' and ' + str(end) + '.')
+        logging.info("Checking wave power for magnetometer %s between %s and %s.", magname.upper(), start, end)  # noqa: E501
         data = all_data[all_data['Magnetometer'] == magname.upper()]
         x = data['UT']
         y = data[parameter]
@@ -938,8 +934,8 @@ def wavepwr(station_id,
                 ' + str(pwr) + ' nT/Hz^(1/2)')
         return pwr
     except ValueError as e:
-        print("Error in wavepwr.")
-        print(e)
+        logger.warning("Error in wavepwr.")
+        logger.info(e)
         logging.info('Window length: ' + str(len(win)) + '\n \
             Signal length: ' + str(len(y)))  # usually this is the issue.
         return 'Error'
@@ -1216,7 +1212,7 @@ def magall(
         magall(is_verbose = true)
     """
     for parameter in ['Bx', 'By', 'Bz']:
-        logging.info('Computing plots for parameter ' + parameter + '.')
+        logging.info("Computing plots for parameter %s.", parameter)
         logging.info('Saving dataframe.')
         magdf(start=start, end=end, maglist_a=maglist_a,
               maglist_b=maglist_b, is_saved=is_saved, is_verbose=is_verbose)
@@ -1224,7 +1220,7 @@ def magall(
         magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
                maglist_b=maglist_b, is_detrended=is_detrended,
                is_displayed=is_displayed,
-               is_saved=is_saved, fstem = fstem, events = events)
+               is_saved=is_saved, fstem=fstem, events=events)
         logging.info('Saving spectrogram plot.')
         magspect(parameter=parameter, start=start, end=end,
                  maglist_a=maglist_a, maglist_b=maglist_b,
