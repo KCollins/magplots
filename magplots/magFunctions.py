@@ -19,6 +19,11 @@ from scipy.signal import stft
 from scipy.signal import welch
 from scipy.signal.windows import hann
 
+# Logging:
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='magplots.log', level=logging.DEBUG)
+
 ###############################################################################
 
 
@@ -87,6 +92,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
             reject_outliers(np.append(y, [-51e100, 41, 2, 45], axis=0))
 
     """
+    logging.info("Rejecting outliers.")
     mean = np.mean(y)
     sd = np.std(y)
     return np.where((mean - 3 * sd < y) & (y < mean + 5 * sd), y, np.nan)
@@ -145,10 +151,7 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     # Loop over each day from start to end
     for day in range(start.day, end.day + 1):
         # Generate the URL for the current day
-        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site\
-                ={tgo_dict.get(magname) if magname in tgo_dict else magname}&\
-                year={start.year}&month={start.month}&day={day}&res={resolution}&\
-                pwd='+ tgopw + '&format=XYZhtml&comps=DHZ&getdata=+Get+Data'
+        url = f'https://flux.phys.uit.no/cgi-bin/mkascii.cgi?site\={tgo_dict.get(magname) if magname in tgo_dict else magname}&year={start.year}&month={start.month}&day={day}&res={resolution}&pwd='+ tgopw + "&format=XYZhtml&comps=DHZ&getdata=+Get+Data"
         if is_url_printed:
             print(url)
         # Fetch the data for the current day
@@ -184,12 +187,11 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     data['UT'] = data['UT'].to_pydatetime()
 
     if data['MAGNETIC_NORTH_-_H'][1] == 999.9999:
-        print("WARNING: Data for " + magname.upper() + " on " + str(start) + "\
+        logging.warn("WARNING: Data for " + magname.upper() + " on " + str(start) + "\
             may not be available.\n  Check your parameters and verify \
             magnetometer coverage at \
             https://flux.phys.uit.no/coverage/indexDTU.html.")
-    if is_verbose:
-        print("Data collected from " + magname)
+    logging.info("Data collected from " + magname)
     return data
 
 ###############################################################################
@@ -248,23 +250,19 @@ def magfetch(
 
     if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # if Arctic, TGO
         try:
-            with open("tgopw.txt", "r", encoding="utf-8") as file:
+            with open("tgopw.txt", "r") as file:
                 tgopw = file.read().strip()
-            if is_verbose:
-                print("Found Tromsø Geophysical Observatory password.")
+            logging.info("Found Tromsø Geophysical Observatory password.")
         except FileNotFoundError:
-            if is_verbose:
-                print("tgopw.txt not found. Checking CDAWeb...")
+            logging.info("tgopw.txt not found. Checking CDAWeb...")
             tgopw = ""  # Set to empty string for CDAWeb
 
     if tgopw:  # Use TGO data if password found or provided
-        if is_verbose:
-            print("Collecting data for", magname.upper(), "from TGO.")
+        logging.info("Collecting data for {} from TGO.".format(magname.upper()))
         data = magfetchtgo(start, end, magname, tgopw=tgopw,
                            resolution=resolution, is_verbose=is_verbose)
     else:  # Use CDAWeb
-        if is_verbose:
-            print("Collecting data for", magname.upper(), "from CDAWeb.")
+        logging.info("Collecting data for {} from CDAWeb.".format(magname.upper()))
         data = cdas.get_data(
             "sp_phys",
             "THG_L2_MAG_" + magname.upper(),
@@ -273,12 +271,10 @@ def magfetch(
             ["thg_mag_" + magname],
         )
 
-    if is_verbose:
-        print("Data for", magname.upper(), "collected:", len(data["UT"]), "\
-              samples.")
+    num_samples = len(data.get("UT", []))  # Handle potential KeyError
+    logging.info(f"Data for {magname.upper()}: {num_samples} samples.")
     if is_detrended:
-        if is_verbose:
-            print('Detrending data - subtracting the median.')
+        logging.info('Detrending data - subtracting the median.')
         for a in ['MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E',
                   'VERTICAL_DOWN_-_Z']:
             data[a] -= np.median(data[a])
@@ -360,8 +356,7 @@ def magdf(
         fname = fname + '.csv'
         fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
-            if is_verbose:
-                print('Looks like ' + fname + ' has already been generated. \
+            logging.info('Looks like ' + fname + ' has already been generated. \
                         Pulling data...')
             return pd.read_csv(fname, parse_dates=[0])
     ut = pd.date_range(start, end, freq='s')   # preallocate time range
@@ -369,9 +364,8 @@ def magdf(
     full_df['UT'] = full_df['UT'].astype('datetime64[s]')  # force 1s precision
     full_df['Magnetometer'] = ""
     for mags in [maglist_a, maglist_b]:
-        for magname in enumerate(mags):
-            if is_verbose:
-                print('Pulling data for magnetometer: ' + magname.upper())
+        for idx, magname in enumerate(mags):
+            logging.info('Pulling data for magnetometer: ' + str(magname).upper())
             # try:
             df = magfetch(start, end, magname, is_detrended=is_detrended)
             df = pd.DataFrame.from_dict(df)
@@ -393,22 +387,18 @@ def magdf(
     df_pivoted = full_df.pivot(index='UT', columns='Magnetometer',
                                values=['Bx', 'By', 'Bz'])
     if is_pivoted:
-        if is_verbose:
-            print("Pivoting to index by time.")
+        logging.info("Pivoting to index by time.")
         full_df = df_pivoted
     if is_uniform:
-        if is_verbose:
-            print('Discarding NaN rows.')
+        logging.info('Discarding NaN rows.')
         df_pivoted = df_pivoted.dropna()
         if not is_pivoted:
             print('Returning to original format.')
             full_df = df_pivoted.unstack(level=1).unstack().unstack().transpose()
             full_df = full_df.reset_index()
-        if is_verbose:
-            print('Dataframe shape: ' + str(full_df.shape))
+        logging.info('Dataframe shape: ' + str(full_df.shape))
     if is_saved:
-        if is_verbose:
-            print('Saving as a CSV.')
+        logging.info('Saving as a CSV.')
         full_df.to_csv(fname, index=False)
     # print(full_df)
     return full_df
@@ -527,14 +517,12 @@ def magfig(
             y = reject_outliers(y)  # Remove power cycling artifacts on PG2.
             axs[idx].plot(x, y, color=color)
 
-            if ~is_autoscaled:
+            if not is_autoscaled:
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                if is_verbose:
-                    print('Adjusting y-axis limits. Median: ' + str(median))
+                logging.info('Adjusting y-axis limits. Median: ' + str(median))
                 ylims = [val+median for val in ylim]
-                if is_verbose:
-                    print(ylims)
+                logging.info(ylims)
                 axs[idx].set_ylim(ylims)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
             axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color=color)
@@ -572,18 +560,16 @@ def magfig(
             if ~is_autoscaled & np.isfinite(y).all():
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                if is_verbose:
-                    print('Adjusting y-axis limits. Median: ' + str(median))
+                logging.info('Adjusting y-axis limits. Median: ' + str(median))
                 ylims = [val+median for val in ylim]
-                if is_verbose:
-                    print(ylims)
+                logging.info(ylims)
                 if ~np.isfinite(ylim).any():
                     ax2.set_ylim(ylims)
 
             ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             ax2.tick_params(axis='y', labelcolor=color)
-        except ValueError as e:
-            print(e)
+        except NoDataError as e:
+            print("No data found for " + magname + ".")
             continue
     if is_titled:
         fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)
@@ -727,8 +713,7 @@ def magspect(
                          is_uniform = is_uniform,
                          is_saved=is_saved,
                          is_verbose=is_verbose)
-    if is_verbose:
-        print(all_data.head(10))
+    logging.info(all_data.head(10))
     # assert all_data.shape[1] == 5
 
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
@@ -767,12 +752,10 @@ def magspect(
                     # Create a logarithmic norm for the colormap
                     vmin = np.abs(zxx).min()
                     vmax = np.abs(zxx).max()
-                    if is_verbose:
-                        print(vmin, vmax)
+                    logging.info(vmin, vmax)
                     if vmin == 0:
                         vmin = .00001
-                        if is_verbose:
-                            print("Adjusting vmin.")
+                        logging.info("Adjusting vmin.")
                     norm = colors.LogNorm(vmin=vmin, vmax=vmax)
                     # Plot the spectrogram with the logarithmic norm
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
@@ -796,12 +779,10 @@ def magspect(
                 cbar.set_label('Power Spectral Density')
                 if is_logaxis:
                     axs[idx, sideidx].set_yscale('log')
-                    if is_verbose:
-                        print("Setting logarithmic scale on y axis.")
+                    logging.info("Setting logarithmic scale on y axis.")
 
                 if is_overplotted is True:  # overplot time domain data
-                    if is_verbose:
-                        print("Plotting time domain data on spectrogram plot.")
+                    logging.info("Plotting time domain data on spectrogram plot.")
                     # Create a new twin axis for the time domain plot
                     ax2 = axs[idx, sideidx].twinx()
 
@@ -814,17 +795,14 @@ def magspect(
                     if ~is_autoscaled:
                         # Adjust y-axis limits around mean:
                         median = np.median(y)
-                        if is_verbose:
-                            print('Adjusting y-axis limits. Median: ' +
+                        logging.info('Adjusting y-axis limits. Median: ' +
                                   str(median))
                         ylims = [val+median for val in ylim]
-                        if is_verbose:
-                            print(ylims)
+                        logging.info(ylims)
                         ax2.set_ylim(ylims)
 
                     # y-axis labels and ticks
-                    if is_verbose:
-                        print('Setting y-axis color for time domain plot.')
+                    logging.info('Setting y-axis color for time domain plot.')
                     ax2.set_ylabel(magname.upper()+ ' — ' + parameter, color=color)
                     ax2.tick_params(axis='y', labelcolor=color)
 
@@ -845,6 +823,7 @@ def magspect(
                                                    va='bottom', ha='left')
 
             except ValueError as e:
+                print("Error in magspect.")
                 print(e)
                 continue
 
@@ -928,8 +907,7 @@ def wavepwr(station_id,
     win = 0  # preallocate
     # print(magname)
     try:
-        if is_verbose:
-            print('Checking wave power for magnetometer '
+        logging.info('Checking wave power for magnetometer '
                   + magname.upper() + ' between ' + str(start) +
                   ' and ' + str(end) + '.')
         data = all_data[all_data['Magnetometer'] == magname.upper()]
@@ -954,17 +932,15 @@ def wavepwr(station_id,
         f, pxxf = welch(datos, fs, window=win,
                         return_onesided=True, detrend=False)
         pwr = pxxf[3]
-        if is_verbose:
-            print(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
-        if is_verbose:
-            print(magname.upper() + ': The estimated power from \
+        logging.info(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
+        logging.info(magname.upper() + ': The estimated power from \
                 ' + str(f_lower) + ' mHz to ' + str(f_upper) + ' mHz is \
                 ' + str(pwr) + ' nT/Hz^(1/2)')
         return pwr
     except ValueError as e:
+        print("Error in wavepwr.")
         print(e)
-        if is_verbose:
-            print('Window length: ' + str(len(win)) + '\n \
+        logging.info('Window length: ' + str(len(win)) + '\n \
             Signal length: ' + str(len(y)))  # usually this is the issue.
         return 'Error'
 
@@ -1052,18 +1028,15 @@ def wavefig(
     """
 
     if stations == "":
-        if is_verbose:
-            print("Loading station list from local file stations.csv...")
+        logging.info("Loading station list from local file stations.csv...")
         stations = pd.read_csv("stations.csv")
 
     if is_maglist_only:
-        if is_verbose:
-            print("Cull to only stations listed in maglist_a and maglist_b.")
+        logging.info("Cull to stations listed in maglist_a and maglist_b.")
         stations = stations[
             stations.IAGA.isin([item.upper() for item in maglist_a + maglist_b])
         ]  # Plot only the polar stations
-        if is_verbose:
-            print(stations.IAGA)
+        logging.info(stations.IAGA)
 
     stations["WAVEPWR"] = stations.apply(
         lambda row: wavepwr(
@@ -1152,8 +1125,7 @@ def wavefig(
         # fname = f"""output/{fstem}WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"""
         fname = "output/" + fstem +f"WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
         fname = fname.replace(":", "")  # Remove colons from timestamps
-        if is_verbose:
-            print(f"Saving figure: {fname}")
+        logging.info(f"Saving figure: {fname}")
         plt.savefig(fname)
 
     return fig
@@ -1244,20 +1216,16 @@ def magall(
         magall(is_verbose = true)
     """
     for parameter in ['Bx', 'By', 'Bz']:
-        if is_verbose:
-            print('Computing plots for parameter ' + parameter + '.')
-        if is_verbose:
-            print('Saving dataframe.')
+        logging.info('Computing plots for parameter ' + parameter + '.')
+        logging.info('Saving dataframe.')
         magdf(start=start, end=end, maglist_a=maglist_a,
               maglist_b=maglist_b, is_saved=is_saved, is_verbose=is_verbose)
-        if is_verbose:
-            print('Saving time-domain plot.')
+        logging.info('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
                maglist_b=maglist_b, is_detrended=is_detrended,
                is_displayed=is_displayed,
                is_saved=is_saved, fstem = fstem, events = events)
-        if is_verbose:
-            print('Saving spectrogram plot.')
+        logging.info('Saving spectrogram plot.')
         magspect(parameter=parameter, start=start, end=end,
                  maglist_a=maglist_a, maglist_b=maglist_b,
                  is_detrended=is_detrended,
@@ -1265,8 +1233,7 @@ def magall(
                  is_saved=is_saved, fstem=fstem,
                  # events=events,
                  event_fontdict=event_fontdict, myFmt=myFmt)
-        if is_verbose:
-            print('Generating wave power plot.')
+        logging.info('Generating wave power plot.')
         wavefig(stations=stations, parameter=parameter, start=start,
                 end=end, maglist_a=maglist_a, maglist_b=maglist_b,
                 f_lower=f_lower, f_upper=f_upper,
