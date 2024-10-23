@@ -479,7 +479,6 @@ def magfig(
     # Now check before calling magdf
     if maglist_a is None and maglist_b is None:
         logger.warning("No magnetometer lists provided.")
-        return  # Or raise an exception if necessary
 
     if is_saved:
         fname = 'output/' + fstem + str(start) + '_' + str(parameter) + '.png'
@@ -595,7 +594,7 @@ def magspect(
     is_autoscaled=False,
     ylim=[-150, 150],
     color="white",  # default color for overplotting time domain data
-    events=None,
+    events=[],
     event_fontdict={'size': 20, 'weight': 'bold'}
 ):
     """Function to create spectrogram plots for conjugate magnetometers.
