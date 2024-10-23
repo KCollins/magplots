@@ -575,7 +575,7 @@ def magfig(
     if is_titled:
         fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)  # noqa: E501
     if is_saved:
-        logger.info("Saving figure. " + fname)
+        logger.info("Saving figure: %s", fname)
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
     if is_displayed:

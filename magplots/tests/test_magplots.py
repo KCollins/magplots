@@ -18,7 +18,7 @@ class TestFindConjugate(unittest.TestCase):
         """Initialize the test case by copying over necessary files."""
         self.start = datetime.datetime(2018, 9, 4, 0, 0, 0)
         self.end = datetime.datetime(2018, 9, 5, 0, 0, 0)
-        self.magname = "atu"  
+        self.magname = "atu"
         self.resolution = "1sec"
 
     def tearDown(self):
@@ -27,7 +27,8 @@ class TestFindConjugate(unittest.TestCase):
 
     def eval_magfetch(self):
         """Evaluate the `magfetch` function."""
-        result = magfetch(self.start, self.end, self.magname, self.resolution)
-       
+        result = mp.magfetch(self.start, self.end, self.magname, self.resolution)
+        expected = self.start
+
         # Assert that the returned values are close enough to expected values
-        self.assertAlmostEqual(result["UT"][1],  datetime(2018, 9, 4, 0, 0, 1, 1000), delta=1)
+        self.assertAlmostEqual(result["UT"][0],  expected, delta=1)
