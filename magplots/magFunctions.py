@@ -102,7 +102,7 @@ def reject_outliers(y):   # y is the data in a 1D numpy array
 
 
 def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
-                is_verbose=False, is_url_printed=False):
+                is_url_printed=False):
     """Pulls Tromsø Geophysical Observatory data from a RESTful API with a link
          based on the date.
 
@@ -118,8 +118,6 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
             Password for Tromsø Geophysical Observatory.
     resolution       : str
             String for data resolution; e.g., '10sec'; default '1sec'.
-    is_verbose      : boolean
-            If set to True/1, prints debugging text.
     is_url_printed  : boolean
             If set to True/1, prints URL to TGO. (Contains password.)
     is_saved        : boolean
@@ -135,7 +133,7 @@ def magfetchtgo(start, end, magname, tgopw='', resolution='10sec',
     ------------
     Save the password locally in the file `tgopw.txt.`
     Run::
-            magfetchtgo(is_verbose=True))
+            magfetchtgo()
 
     """
 
@@ -200,7 +198,6 @@ def magfetch(
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     magname="atu",
     is_detrended=True,
-    is_verbose=False,
     tgopw="",
     resolution="10sec",
 ):
@@ -217,9 +214,6 @@ def magfetch(
 
     is_detrended : bool, optional
         Boolean for whether the median is subtracted out.
-
-    is_verbose : bool, optional
-        Boolean for whether debugging text is printed.
 
     tgopw : str, optional
         Password for Tromsø Geophysical Observatory. Calls magfetchtgo().
@@ -240,8 +234,7 @@ def magfetch(
             magfetch(start = datetime.datetime(2018, 9, 4, 0, 0, 0),
                         end = datetime.datetime(2018, 9, 5, 0, 0, 0),
                         magname = 'atu',
-                        resolution = '1sec',
-                        is_verbose = True
+                        resolution = '1sec'
                     )
 
     """
@@ -258,7 +251,7 @@ def magfetch(
     if tgopw:  # Use TGO data if password found or provided
         logging.info("Collecting data for %s from TGO.", magname.upper())
         data = magfetchtgo(start, end, magname, tgopw=tgopw,
-                           resolution=resolution, is_verbose=is_verbose)
+                           resolution=resolution)
     else:  # Use CDAWeb
         logging.info("Collecting data for %s from CDAWeb.", magname.upper())
         try:
@@ -326,9 +319,6 @@ def magdf(
     is_saved : bool, optional
         Boolean for whether resulting dataframe is saved to /output directory.
 
-    is_verbose : bool, optional
-        Boolean for whether debugging text is printed.
-
     Returns
     -------
     dataframe : pandas.DataFrame
@@ -338,7 +328,7 @@ def magdf(
     ------------
     Generates dataframe with default values::
 
-        df = magdf(is_verbose = True, is_saved = True)
+        df = magdf(is_saved = True)
     """
     # Magnetometer parameter dict so we don't have to type the full string:
     d = {'Bx': 'MAGNETIC_NORTH_-_H',
@@ -416,7 +406,6 @@ def magfig(
     fstem="",
     is_autoscaled=False,
     ylim=[-150, 150],
-    is_verbose=False,
     events=None, event_fontdict={'size': 20, 'weight': 'bold'}
 ):
     """Function to create a stackplot for a given set of conjugate
@@ -462,9 +451,6 @@ def magfig(
         y-axis limits for time domain plot, in nanotesla above, below median.
         Defaults to [-150, 150].
 
-    is_verbose : bool, optional
-        Boolean for displaying debugging text.
-
     events : list, optional
         List of datetimes for events marked on figure. Empty by default.
 
@@ -480,7 +466,7 @@ def magfig(
 
         start = datetime.datetime(2019, 8, 2, 0, 0, 0)
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
-        magfig(start=start, end=end, is_verbose = True)
+        magfig(start=start, end=end)
     """
 
     if is_saved:
@@ -500,8 +486,7 @@ def magfig(
         maglist_a=maglist_a,
         maglist_b=maglist_b,
         is_detrended=is_detrended,
-        is_saved=is_saved,
-        is_verbose=is_verbose
+        is_saved=is_saved
     )
 
     for idx, magname in enumerate(maglist_a):   # Plot Arctic mags:
@@ -590,7 +575,6 @@ def magspect(
     is_displayed=False,
     is_saved=True,
     fstem="",
-    is_verbose=False,
     is_uniform=True,
     is_logaxis=False,
     is_logcolor=True,
@@ -631,9 +615,6 @@ def magspect(
 
     fstem : str, optional
         String for filename prefix. Empty by default.
-
-    is_verbose : bool, optional
-        Boolean for displaying debugging text.
 
     is_uniform : bool, optional
         Boolean to pass to magdf() so that both sets of plots are the same
@@ -683,7 +664,7 @@ def magspect(
 
         start = datetime.datetime(2019, 8, 2, 0, 0, 0)
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
-        magspect(start=start, end=end, is_verbose = False)
+        magspect(start=start, end=end)
     """
     if is_uniform is False:
         logger.warning("Warn: Scaling won't work correctly without uniform sampling.")  # noqa: E501
@@ -707,8 +688,7 @@ def magspect(
                      is_detrended=is_detrended,
                      is_pivoted=False,
                      is_uniform=is_uniform,
-                     is_saved=is_saved,
-                     is_verbose=is_verbose)
+                     is_saved=is_saved)
     logging.info(all_data.head(10))
     # assert all_data.shape[1] == 5
 
@@ -843,7 +823,6 @@ def wavepwr(station_id,
             f_lower=1.667,    # freq threshold in mHz (600 secs => 1.667 mHz)
             f_upper=6.667,    # freq threshold in mHz (150 secs => 6.667 mHz)
             is_saved=False,
-            is_verbose=False,
             is_detrended=True
             ):
     """Function to determine Pc5 (by default) wave power for a given
@@ -867,9 +846,6 @@ def wavepwr(station_id,
         Boolean for whether loaded data is saved to /output directory.
         Defaults to False.
 
-    is_verbose : bool, optional
-        Print details of calculation. Defaults to False.
-
     is_detrended : bool, optional
         Boolean for whether median is subtracted from data. Defaults to True.
 
@@ -886,7 +862,7 @@ def wavepwr(station_id,
         start = datetime.datetime(2019, 8, 2, 0, 0, 0)
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
         wavepwr('pg4', parameter = 'Bx', start = start,
-                 end = end,is_verbose=False)
+                 end = end)
     """
     magname = station_id.lower()
     all_data = magdf(
@@ -895,8 +871,7 @@ def wavepwr(station_id,
         maglist_a=[magname],  # does not need to be an Arctic magnetometer
         maglist_b=[],
         is_detrended=is_detrended,
-        is_saved=is_saved,
-        is_verbose=is_verbose
+        is_saved=is_saved
     )
 
     win = 0  # preallocate
@@ -952,8 +927,7 @@ def wavefig(
         is_displayed=True,
         is_saved=False,
         fstem="",
-        is_data_saved=False,
-        is_verbose=False,
+        is_data_saved=False
         ):
     """Function to create wave power plot for a given set of magnetometers.
 
@@ -1002,9 +976,6 @@ def wavefig(
         Boolean for whether dataframe of wave power calculation results is
         saved to /output directory.
 
-    is_verbose : bool, optional
-        Boolean for whether debugging text is printed.
-
     Returns
     -------
     figure : matplotlib.figure.Figure
@@ -1015,7 +986,7 @@ def wavefig(
     ------------
     Generate wave power plot for default range::
 
-        wavefig(is_verbose = False, is_displayed = True, is_saved = True,
+        wavefig(is_displayed = True, is_saved = True,
         is_data_saved = True)
     """
 
@@ -1039,7 +1010,6 @@ def wavefig(
             f_lower=f_lower,
             f_upper=f_upper,
             is_saved=is_saved,
-            is_verbose=is_verbose,
             is_detrended=is_detrended
         ),
         axis=1,
@@ -1136,7 +1106,6 @@ def magall(
     is_displayed=False,
     is_saved=True,
     fstem="",
-    is_verbose=False,
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
     myFmt=mdates.DateFormatter('%H:%M'),
@@ -1211,7 +1180,7 @@ def magall(
         logging.info("Computing plots for parameter %s.", parameter)
         logging.info('Saving dataframe.')
         magdf(start=start, end=end, maglist_a=maglist_a,
-              maglist_b=maglist_b, is_saved=is_saved, is_verbose=is_verbose)
+              maglist_b=maglist_b, is_saved=is_saved)
         logging.info('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
                maglist_b=maglist_b, is_detrended=is_detrended,
@@ -1221,7 +1190,7 @@ def magall(
         magspect(parameter=parameter, start=start, end=end,
                  maglist_a=maglist_a, maglist_b=maglist_b,
                  is_detrended=is_detrended,
-                 is_displayed=is_displayed, is_verbose=is_verbose,
+                 is_displayed=is_displayed,
                  is_saved=is_saved, fstem=fstem,
                  # events=events,
                  event_fontdict=event_fontdict, myFmt=myFmt)
@@ -1232,4 +1201,4 @@ def magall(
                 is_maglist_only=is_maglist_only,
                 is_detrended=is_detrended,
                 is_displayed=is_displayed, is_saved=is_saved,
-                fstem=fstem, is_verbose=is_verbose)
+                fstem=fstem)
