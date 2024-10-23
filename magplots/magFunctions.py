@@ -239,6 +239,9 @@ def magfetch(
 
     """
 
+    if magname is None:
+        logger.warning("No magnetometer name given; exiting magfetch() function.")
+        return None
     if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # if Arctic, TGO
         try:
             with open("tgopw.txt", "r") as file:
@@ -280,8 +283,8 @@ def magfetch(
 def magdf(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
-    maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],  # Arctic mags
-    maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],  # Antarctic mags
+    maglist_a=None,  # Arctic mags
+    maglist_b=None,  # Antarctic mags
     is_detrended=True,
     is_pivoted=False,
     is_uniform=False,
@@ -297,11 +300,11 @@ def magdf(
 
     maglist_a : list, optional
         List of Arctic magnetometers.
-        Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'].
+        Defaults to ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] if not declared.
 
     maglist_b : list, optional
         Corresponding list of Antarctic magnetometers.
-        Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
+        Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'] if not declared.
 
     is_detrended : bool, optional
         Boolean for whether median is subtracted from data. Defaults to True.
@@ -330,6 +333,13 @@ def magdf(
 
         df = magdf(is_saved = True)
     """
+    if maglist_a is None:
+        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
+        logger.info("Setting Arctic magnetometer list to default values.")
+    if maglist_a is None:
+        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+        logger.info("Setting Antarctic magnetometer list to default values.")
+
     # Magnetometer parameter dict so we don't have to type the full string:
     d = {'Bx': 'MAGNETIC_NORTH_-_H',
          'By': 'MAGNETIC_EAST_-_E',
@@ -354,7 +364,7 @@ def magdf(
     full_df['UT'] = full_df['UT'].astype('datetime64[s]')  # force 1s precision
     full_df['Magnetometer'] = ""
     for mags in [maglist_a, maglist_b]:
-        for idx, magname in enumerate(mags):
+        for magname in mags:
             logging.info('Pulling data: %s', str(magname).upper())
             try:
                 df = magfetch(start, end, magname, is_detrended=is_detrended)
@@ -397,8 +407,8 @@ def magfig(
     parameter='Bx',
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
-    maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
-    maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
+    maglist_a=None,
+    maglist_b=None,
     is_detrended=True,
     is_displayed=False,
     is_titled=True,
@@ -469,6 +479,17 @@ def magfig(
         magfig(start=start, end=end)
     """
 
+    if maglist_a is None:
+        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
+        logger.info("Setting Arctic magnetometer lists to default values.")
+    if maglist_a is None:
+        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+        logger.info("Setting Antarctic magnetometer lists to default values.")
+    # Now check before calling magdf
+    if maglist_a is None and maglist_b is None:
+        logger.warning("No magnetometer lists provided.")
+        return  # Or raise an exception if necessary
+
     if is_saved:
         fname = 'output/' + fstem + str(start) + '_' + str(parameter) + '.png'
         fname = fname.replace(":", "")  # Remove colons from timestamps
@@ -479,7 +500,6 @@ def magfig(
     fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25),
                             constrained_layout=True)
     logger.info("Plotting data for %d magnetometers: %s", len(maglist_a), str(start))
-
     all_data = magdf(
         start=start,
         end=end,
@@ -500,18 +520,17 @@ def magfig(
             axs[idx].plot(x, y, color=color)
 
             if not is_autoscaled:
-                # Adjust y-axis limits around mean:
                 median = np.median(y)
-                logging.info('Adjusting y-axis limits. Median: %d', median)
+                logging.info('Adjusting y-axis limits. Median: %s', str(median))
                 ylims = [val+median for val in ylim]
                 logging.info(ylims)
                 axs[idx].set_ylim(ylims)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
             axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color=color)
-            axs[idx].tick_params(axis='y', labelcolor = color)
+            axs[idx].tick_params(axis='y', labelcolor=color)
 
             if events is not None:
-                # print('Plotting events...')
+                logger.info('Plotting events...')
                 trans = mpl.transforms.blended_transform_factory(axs[idx].transData,axs[idx].transAxes)
                 for event in events:
                     evt_dtime = event.get('datetime')
@@ -542,7 +561,7 @@ def magfig(
             if ~is_autoscaled & np.isfinite(y).all():
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                logging.info("Adjusting y-axis limits. Median: %d", median)
+                logging.info("Adjusting y-axis limits. Median: %s", str(median))
                 ylims = [val+median for val in ylim]
                 logging.info(ylims)
                 if ~np.isfinite(ylim).any():
@@ -569,8 +588,8 @@ def magspect(
     parameter='Bx',
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
-    maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
-    maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
+    maglist_a=None,
+    maglist_b=None,
     is_detrended=True,
     is_displayed=False,
     is_saved=True,
@@ -666,9 +685,18 @@ def magspect(
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
         magspect(start=start, end=end)
     """
+    if maglist_a is None:
+        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
+        logger.info("Setting Arctic magnetometer lists to default values.")
+    if maglist_a is None:
+        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+        logger.info("Setting Antarctic magnetometer lists to default values.")
+
     if is_uniform is False:
         logger.warning("Warn: Scaling won't work correctly without uniform sampling.")  # noqa: E501
     if is_saved:
+        if fstem is None:
+            fstem = ""
         fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + '_' + \
                 str(parameter) + '.png'
         fname = fname.replace(":", "")  # Remove colons from timestamps
@@ -901,9 +929,7 @@ def wavepwr(station_id,
                         return_onesided=True, detrend=False)
         pwr = pxxf[3]
         logging.info(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
-        logging.info(magname.upper() + ': The estimated power from \
-                ' + str(f_lower) + ' mHz to ' + str(f_upper) + ' mHz is \
-                ' + str(pwr) + ' nT/Hz^(1/2)')
+        logging.info("%s: The estimated power from %d + ' mHz to %d mHz is %d nT/Hz^(1/2)", magname.upper(), f_lower, f_upper, pwr)  # noqa: E501
         return pwr
     except ValueError as e:
         logger.warning("Error in wavepwr.")
@@ -918,8 +944,8 @@ def wavefig(
         parameter="Bx",
         start=datetime.datetime(2016, 1, 25, 0, 0, 0),
         end=datetime.datetime(2016, 1, 26, 0, 0, 0),
-        maglist_a=["upn", "umq", "gdh", "atu", "skt", "ghb"],
-        maglist_b=["pg0", "pg1", "pg2", "pg3", "pg4", "pg5"],
+        maglist_a=None,
+        maglist_b=None,
         f_lower=1.667,  # frequency threshold in mHz
         f_upper=6.667,  # frequency threshold in mHz
         is_maglist_only=True,
@@ -989,6 +1015,12 @@ def wavefig(
         wavefig(is_displayed = True, is_saved = True,
         is_data_saved = True)
     """
+
+    logger.info("Setting magnetometer lists to default values.")
+    if maglist_a is None:
+        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
+    if maglist_a is None:
+        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
 
     if stations == "":
         logging.info("Loading station list from local file stations.csv...")
@@ -1098,8 +1130,8 @@ def wavefig(
 def magall(
     start=datetime.datetime(2016, 1, 25, 0, 0, 0),
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
-    maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
-    maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
+    maglist_a=None,
+    maglist_b=None,
     f_lower=1.667,        # frequency threshold in mHz
     f_upper=6.667,     # frequency threshold in mHz
     is_detrended=True,
@@ -1176,6 +1208,13 @@ def magall(
 
         magall(is_verbose = true)
     """
+
+    logger.info("Setting magnetometer lists to default values.")
+    if maglist_a is None:
+        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
+    if maglist_a is None:
+        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+
     for parameter in ['Bx', 'By', 'Bz']:
         logging.info("Computing plots for parameter %s.", parameter)
         logging.info('Saving dataframe.')
