@@ -240,7 +240,7 @@ def magfetch(
     """
 
     if magname is None:
-        logger.warning("No magnetometer name given; exiting magfetch() function.")
+        logger.warning("No mag name given; exiting magfetch() function.")
         return None
     if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # if Arctic, TGO
         try:
@@ -799,7 +799,7 @@ def magspect(
                     if ~is_autoscaled:
                         # Adjust y-axis limits around mean:
                         median = np.median(y)
-                        logging.info('Adjusting y-axis limits. Median: %s', str(median))  # noqa: E501
+                        logging.info("Adjusting y-axis limits. Median: %s", str(median))  # noqa: E501
                         ylims = [val+median for val in ylim]
                         logging.info(ylims)
                         ax2.set_ylim(ylims)
@@ -810,9 +810,14 @@ def magspect(
                     ax2.tick_params(axis='y', labelcolor=color)
 
                 if events is not None:
+                    event_list = events.copy()
+                else:
+                    event_list = events
+
+                if events is not None:
                     trans = mpl.transforms.blended_transform_factory(axs[idx, sideidx].transData,
                                                                      axs[idx, sideidx].transAxes)
-                    for event in events:
+                    for event in event_list:
                         evt_dtime = event.get('datetime')
                         evt_label = event.get('label')
                         evt_color = event.get('color', '0.4')
@@ -833,11 +838,10 @@ def magspect(
     fig.suptitle(str(start) + ' to ' + str(end) + ' — ' + str(parameter),
                  fontsize=30)  # Title the plot...
     if is_saved:
-        fname = 'output/' + fstem + 'PowerSpectrum_' + str(start) + ' to ' + \
-                str(end) + '_' + str(parameter) + '.png'
-        fname = fname.replace(":", "")  # Remove colons from timestamps
         logger.info("Saving figure: %s", fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
+        fig = plt.imread('fname')
+        return fig
     if is_displayed:
         return fig
 
