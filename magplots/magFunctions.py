@@ -487,7 +487,9 @@ def magfig(
         fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
             logger.info("Looks like %s has already been generated.", fname)
-            fig = plt.imread('fname')
+            fig = plt.imread(fname)
+            plt.imshow(fig)
+            plt.axis('off')
             return fig
             # raise Exception('This file has already been generated.')
     fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25),
@@ -524,10 +526,6 @@ def magfig(
 
             if events is not None:
                 event_list = events.copy()
-            else:
-                event_list = events
-
-            if events is not None:
                 logger.info('Plotting events...')
                 trans = mpl.transforms.blended_transform_factory(axs[idx].transData,axs[idx].transAxes)
                 for event in event_list:
@@ -567,7 +565,7 @@ def magfig(
 
             ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             ax2.tick_params(axis='y', labelcolor=color)
-        except NoDataError as e:
+        except NoDataError:
             logger.info("No data found for %s.", magname.upper())
             continue
     if is_titled:
@@ -599,8 +597,7 @@ def magspect(
     ylim=[-150, 150],
     color="white",  # default color for overplotting time domain data
     events=None,
-    event_fontdict={'size': 20, 'weight': 'bold'},
-    myFmt=mdates.DateFormatter('%H:%M')
+    event_fontdict={'size': 20, 'weight': 'bold'}
 ):
     """Function to create spectrogram plots for conjugate magnetometers.
 
@@ -660,9 +657,6 @@ def magspect(
         Font dict for formatting of event labels.
         Defaults to {'size': 20, 'weight': 'bold'}.
 
-    myFmt : matplotlib.dates.DateFormatter, optional
-        Date formatter. By default: mdates.DateFormatter('%H:%M').
-
     Returns
     -------
     figure : matplotlib.figure.Figure
@@ -694,7 +688,9 @@ def magspect(
         fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
             print('Looks like ' + fname + ' has already been generated.')
-            fig = plt.imread('fname')
+            fig = plt.imread(fname)
+            plt.imshow(fig)
+            plt.axis('off')
             return fig
 
     fig, axs = plt.subplots(len(maglist_a), 2,
@@ -719,8 +715,8 @@ def magspect(
 
             try:
                 data = all_data[all_data["Magnetometer"] == magname.upper()]
-                assert data.shape[0] > 0
-                assert data.shape[1] == 5
+                # assert data.shape[0] > 0
+                # assert data.shape[1] == 5
                 x = data['UT']
                 y = data[parameter]
                 assert len(x) == len(y)
@@ -832,7 +828,7 @@ def magspect(
     if is_saved:
         logger.info("Saving figure: %s", fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
-        fig = plt.imread('fname')
+        fig = plt.imread(fname)
     return fig
 
 ###############################################################################
@@ -942,7 +938,7 @@ def wavefig(
         f_lower=1.667,  # frequency threshold in mHz
         f_upper=6.667,  # frequency threshold in mHz
         is_maglist_only=True,
-        is_detrended = True,
+        is_detrended=True,
         is_saved=False,
         fstem=None
         ):
@@ -1119,7 +1115,6 @@ def magall(
     fstem=None,
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
-    myFmt=mdates.DateFormatter('%H:%M'),
     stations=None,
     is_maglist_only=True
 ):
@@ -1159,9 +1154,6 @@ def magall(
     event_fontdict : dict, optional
         Font dict for formatting of event labels.
         Defaults to {'size': 20, 'weight': 'bold'}.
-
-    myFmt : matplotlib.dates.DateFormatter, optional
-        Date formatter. By default: mdates.DateFormatter('%H:%M').
 
     stations : pandas.DataFrame, optional
         Table of station coordinates. (Type `help(wavefig)` for more
@@ -1205,7 +1197,7 @@ def magall(
                  is_detrended=is_detrended,
                  is_saved=is_saved, fstem=fstem,
                  # events=events,
-                 event_fontdict=event_fontdict, myFmt=myFmt)
+                 event_fontdict=event_fontdict)
         logging.info('Generating wave power plot.')
         wavefig(stations=stations, parameter=parameter, start=start,
                 end=end, maglist_a=maglist_a, maglist_b=maglist_b,
