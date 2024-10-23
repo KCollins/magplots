@@ -14,7 +14,6 @@ from ai.cdas import NoDataError
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-import matplotlib.dates as mdates
 from matplotlib import colors
 
 from scipy.signal import stft
@@ -914,7 +913,7 @@ def wavepwr(station_id,
         win = hann(nblock, True)
 
         # f, pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
-        f, pxxf = welch(datos, fs, window=win,
+        f, pxxf = welch(datos, fs, window=win, noverlap=overlap,
                         return_onesided=True, detrend=False)
         pwr = pxxf[3]
         logging.info(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
