@@ -487,7 +487,8 @@ def magfig(
         fname = fname.replace(":", "")  # Remove colons from timestamps
         if os.path.exists(fname):
             logger.info("Looks like %s has already been generated.", fname)
-            return
+            fig = plt.imread('fname')
+            return fig
             # raise Exception('This file has already been generated.')
     fig, axs = plt.subplots(len(maglist_a), figsize=(25, 25),
                             constrained_layout=True)
@@ -522,14 +523,19 @@ def magfig(
             axs[idx].tick_params(axis='y', labelcolor=color)
 
             if events is not None:
+                event_list = events.copy()
+            else:
+                event_list = events
+
+            if events is not None:
                 logger.info('Plotting events...')
                 trans = mpl.transforms.blended_transform_factory(axs[idx].transData,axs[idx].transAxes)
-                for event in events:
+                for event in event_list:
                     evt_dtime = event.get('datetime')
                     evt_label = event.get('label')
                     evt_color = event.get('color', '0.4')
 
-                    axs[idx].axvline(evt_dtime,lw=1,ls='--',color=evt_color)
+                    axs[idx].axvline(evt_dtime, lw=1, ls='--', color=evt_color)
                     if evt_label is not None:
                         axs[idx].text(evt_dtime, 0.01, evt_label,
                                       transform=trans, rotation=90,
@@ -891,7 +897,6 @@ def wavepwr(station_id,
     )
 
     win = 0  # preallocate
-    # print(magname)
     try:
         logging.info("Checking wave power for magnetometer %s between %s and %s.", magname.upper(), start, end)  # noqa: E501
         data = all_data[all_data['Magnetometer'] == magname.upper()]
@@ -939,8 +944,7 @@ def wavefig(
         is_maglist_only=True,
         is_detrended = True,
         is_saved=False,
-        fstem=None,
-        is_data_saved=False
+        fstem=None
         ):
     """Function to create wave power plot for a given set of magnetometers.
 
@@ -981,10 +985,6 @@ def wavefig(
     fstem : str, optional
         String for filename prefix. Empty by default.
 
-    is_data_saved : bool, optional
-        Boolean for whether dataframe of wave power calculation results is
-        saved to /output directory.
-
     Returns
     -------
     figure : matplotlib.figure.Figure
@@ -995,8 +995,7 @@ def wavefig(
     ------------
     Generate wave power plot for default range::
 
-        wavefig(is_saved = True,
-        is_data_saved = True)
+        wavefig(is_saved = True)
     """
 
     logger.info("Setting magnetometer lists to default values.")
