@@ -266,7 +266,8 @@ def magfetch(
                 ['thg_mag_' + magname],
             )
         except NoDataError:
-            logging.info("No data found on CDAWeb for %s.", magname.upper())  # noqa: E501
+            logging.info("NoDataError: No data found on CDAWeb for %s.", magname.upper())  # noqa: E501
+            data = None
         else:
             logging.info("Data for %s: %d samples.", magname.upper(), len(data.get("UT", [])))  # noqa: E501
             if is_detrended:
@@ -366,15 +367,11 @@ def magdf(
     for mags in [maglist_a, maglist_b]:
         for magname in mags:
             logging.info('Pulling data: %s', str(magname).upper())
-            try:
-                df = magfetch(start, end, magname, is_detrended=is_detrended)
-                df = pd.DataFrame.from_dict(df)
-                df.rename(columns=d_i, inplace=True)    # mnemonic column names
-                df['Magnetometer'] = magname.upper()
-                full_df = pd.concat([full_df, df])
-            except Exception as e:
-                logging.info(e)
-                continue
+            df = magfetch(start, end, magname, is_detrended=is_detrended)
+            df = pd.DataFrame.from_dict(df)
+            df.rename(columns=d_i, inplace=True)    # mnemonic column names
+            df['Magnetometer'] = magname.upper()
+            full_df = pd.concat([full_df, df])
     full_df['UT'] = full_df['UT'].astype('datetime64[s]')  # enforce 1s
     full_df = full_df[full_df['Magnetometer'] != '']  # drop empty rows
     full_df = full_df.drop(['UT_1'],  # drop extraneous columns
@@ -410,7 +407,6 @@ def magfig(
     maglist_a=None,
     maglist_b=None,
     is_detrended=True,
-    is_displayed=False,
     is_titled=True,
     is_saved=False,
     fstem=None,
@@ -440,10 +436,6 @@ def magfig(
 
     is_detrended : bool, optional
         Boolean for whether median is subtracted from data. Defaults to True.
-
-    is_displayed : bool, optional
-        Boolean for whether resulting figure is displayed inline.
-        Defaults to False.
 
     is_titled : bool, optional
         Boolean for overall plot title. Defaults to True.
@@ -578,8 +570,7 @@ def magfig(
         logger.info("Saving figure: %s", fname)
         # fname = 'output/' +str(start) + '_' +  str(parameter) + '.png'
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
-    if is_displayed:
-        return fig
+    return fig
 
 
 ###############################################################################
@@ -591,7 +582,6 @@ def magspect(
     maglist_a=None,
     maglist_b=None,
     is_detrended=True,
-    is_displayed=False,
     is_saved=True,
     fstem=None,
     is_uniform=True,
@@ -624,10 +614,6 @@ def magspect(
     maglist_b : list, optional
         Corresponding list of Antarctic magnetometers.
         Defaults to ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'].
-
-    is_displayed : bool, optional
-        Boolean for whether resulting figure is displayed inline.
-        Defaults to False.
 
     is_saved : bool, optional
         Boolean for whether resulting figure is saved to /output directory.
@@ -756,7 +742,7 @@ def magspect(
                     # Create a logarithmic norm for the colormap
                     vmin = np.abs(zxx).min()
                     vmax = np.abs(zxx).max()
-                    logging.info(vmin, vmax)
+                    logging.info("vmin: %d, vmax: %d", vmin, vmax)
                     if vmin == 0:
                         vmin = .00001
                         logging.info("Adjusting vmin.")
@@ -841,9 +827,7 @@ def magspect(
         logger.info("Saving figure: %s", fname)
         fig.savefig(fname, dpi='figure', pad_inches=0.3)
         fig = plt.imread('fname')
-        return fig
-    if is_displayed:
-        return fig
+    return fig
 
 ###############################################################################
 
@@ -954,7 +938,6 @@ def wavefig(
         f_upper=6.667,  # frequency threshold in mHz
         is_maglist_only=True,
         is_detrended = True,
-        is_displayed=True,
         is_saved=False,
         fstem=None,
         is_data_saved=False
@@ -992,10 +975,6 @@ def wavefig(
     is_detrended : bool, optional
         Boolean for whether median is subtracted from data. Defaults to True.
 
-    is_displayed : bool, optional
-        Boolean for whether resulting figure is displayed inline.
-        Defaults to False.
-
     is_saved : bool, optional
         Boolean for whether resulting figure is saved to /output directory.
 
@@ -1016,7 +995,7 @@ def wavefig(
     ------------
     Generate wave power plot for default range::
 
-        wavefig(is_displayed = True, is_saved = True,
+        wavefig(is_saved = True,
         is_data_saved = True)
     """
 
@@ -1026,7 +1005,7 @@ def wavefig(
     if maglist_a is None:
         maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
 
-    if stations == "":
+    if stations is None:
         logging.info("Loading station list from local file stations.csv...")
         stations = pd.read_csv("stations.csv")
 
@@ -1115,9 +1094,7 @@ def wavefig(
     # Configure plot layout
     fig.tight_layout()
 
-    # Optional: display or save the figure
-    if is_displayed:
-        plt.show()
+    plt.show()
 
     if is_saved:
         # fname = f"""output/{fstem}WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"""
@@ -1139,7 +1116,6 @@ def magall(
     f_lower=1.667,        # frequency threshold in mHz
     f_upper=6.667,     # frequency threshold in mHz
     is_detrended=True,
-    is_displayed=False,
     is_saved=True,
     fstem=None,
     events=None,
@@ -1171,10 +1147,6 @@ def magall(
 
     is_detrended : bool, optional
         Boolean for whether median is subtracted from data. Defaults to True.
-
-    is_displayed : bool, optional
-        Boolean for whether resulting figure is displayed inline.
-        Defaults to False.
 
     is_saved : bool, optional
         Boolean for whether resulting figure is saved to /output directory.
@@ -1227,13 +1199,11 @@ def magall(
         logging.info('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
                maglist_b=maglist_b, is_detrended=is_detrended,
-               is_displayed=is_displayed,
                is_saved=is_saved, fstem=fstem, events=events)
         logging.info('Saving spectrogram plot.')
         magspect(parameter=parameter, start=start, end=end,
                  maglist_a=maglist_a, maglist_b=maglist_b,
                  is_detrended=is_detrended,
-                 is_displayed=is_displayed,
                  is_saved=is_saved, fstem=fstem,
                  # events=events,
                  event_fontdict=event_fontdict, myFmt=myFmt)
@@ -1243,5 +1213,5 @@ def magall(
                 f_lower=f_lower, f_upper=f_upper,
                 is_maglist_only=is_maglist_only,
                 is_detrended=is_detrended,
-                is_displayed=is_displayed, is_saved=is_saved,
+                is_saved=is_saved,
                 fstem=fstem)
