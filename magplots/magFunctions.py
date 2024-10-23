@@ -4,6 +4,7 @@
 import os
 import os.path
 import datetime
+import logging
 import numpy as np
 import pandas as pd
 
@@ -21,7 +22,6 @@ from scipy.signal import welch
 from scipy.signal.windows import hann
 
 # Logging:
-import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='magplots.log', level=logging.DEBUG)
 
@@ -502,7 +502,7 @@ def magfig(
             if not is_autoscaled:
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                logging.info('Adjusting y-axis limits. Median: ' + str(median))
+                logging.info('Adjusting y-axis limits. Median: %d', median)
                 ylims = [val+median for val in ylim]
                 logging.info(ylims)
                 axs[idx].set_ylim(ylims)
@@ -542,7 +542,7 @@ def magfig(
             if ~is_autoscaled & np.isfinite(y).all():
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                logging.info('Adjusting y-axis limits. Median: ' + str(median))
+                logging.info("Adjusting y-axis limits. Median: %d", median)
                 ylims = [val+median for val in ylim]
                 logging.info(ylims)
                 if ~np.isfinite(ylim).any():
@@ -551,7 +551,7 @@ def magfig(
             ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             ax2.tick_params(axis='y', labelcolor=color)
         except NoDataError as e:
-            logger.info("No data found for " + magname + ".")
+            logger.info("No data found for %s.", magname.upper())
             continue
     if is_titled:
         fig.suptitle(str(start) + ' to ' + str(end) + ' — '+ str(parameter), fontsize=30)  # noqa: E501
