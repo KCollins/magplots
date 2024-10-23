@@ -403,7 +403,7 @@ def magfig(
     is_displayed=False,
     is_titled=True,
     is_saved=False,
-    fstem="",
+    fstem=None,
     is_autoscaled=False,
     ylim=[-150, 150],
     events=None, event_fontdict={'size': 20, 'weight': 'bold'}
@@ -574,7 +574,7 @@ def magspect(
     is_detrended=True,
     is_displayed=False,
     is_saved=True,
-    fstem="",
+    fstem=None,
     is_uniform=True,
     is_logaxis=False,
     is_logcolor=True,
