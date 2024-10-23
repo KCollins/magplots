@@ -244,7 +244,7 @@ def magfetch(
         return None
     if magname in ["upn", "umq", "gdh", "atu", "skt", "ghb"]:  # if Arctic, TGO
         try:
-            with open("tgopw.txt", "r") as file:
+            with open("tgopw.txt", "r", encoding = "utf-8") as file:
                 tgopw = file.read().strip()
             logging.info("Found Tromsø Geophysical Observatory password.")
         except FileNotFoundError:
@@ -274,7 +274,7 @@ def magfetch(
                 for a in ['MAGNETIC_NORTH_-_H', 'MAGNETIC_EAST_-_E',
                           'VERTICAL_DOWN_-_Z']:
                     data[a] -= np.median(data[a])
-        return data
+    return data
 
 
 ###############################################################################
