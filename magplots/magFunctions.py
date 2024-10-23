@@ -571,7 +571,7 @@ def magspect(
     end=datetime.datetime(2016, 1, 26, 0, 0, 0),
     maglist_a=['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'],
     maglist_b=['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5'],
-    is_detrended = True,
+    is_detrended=True,
     is_displayed=False,
     is_saved=True,
     fstem="",
@@ -869,7 +869,7 @@ def wavepwr(station_id,
         start=start,
         end=end,
         maglist_a=[magname],  # does not need to be an Arctic magnetometer
-        maglist_b=[],
+        maglist_b=None,
         is_detrended=is_detrended,
         is_saved=is_saved
     )
@@ -914,7 +914,7 @@ def wavepwr(station_id,
 
 ###############################################################################
 def wavefig(
-        stations="",  # dataframe
+        stations=None,  # dataframe
         parameter="Bx",
         start=datetime.datetime(2016, 1, 25, 0, 0, 0),
         end=datetime.datetime(2016, 1, 26, 0, 0, 0),
@@ -926,7 +926,7 @@ def wavefig(
         is_detrended = True,
         is_displayed=True,
         is_saved=False,
-        fstem="",
+        fstem=None,
         is_data_saved=False
         ):
     """Function to create wave power plot for a given set of magnetometers.
@@ -1105,11 +1105,11 @@ def magall(
     is_detrended=True,
     is_displayed=False,
     is_saved=True,
-    fstem="",
+    fstem=None,
     events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
     myFmt=mdates.DateFormatter('%H:%M'),
-    stations="",
+    stations=None,
     is_maglist_only=True
 ):
     """
