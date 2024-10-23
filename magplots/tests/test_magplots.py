@@ -23,14 +23,11 @@ class TestFindConjugate(unittest.TestCase):
 
     def tearDown(self):
         """Clean up the test environment."""
-        del self.ut, self.lat, self.lon, self.method, self.expected_lat
-        del self.expected_lon
+        del self.start, self.end, self.magname, self.resolution
 
     def eval_magfetch(self):
         """Evaluate the `magfetch` function."""
         result = magfetch(self.start, self.end, self.magname, self.resolution)
        
-
         # Assert that the returned values are close enough to expected values
         self.assertAlmostEqual(result["UT"][1],  datetime(2018, 9, 4, 0, 0, 1, 1000), delta=1)
-
