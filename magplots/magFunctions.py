@@ -411,7 +411,7 @@ def magfig(
     fstem=None,
     is_autoscaled=False,
     ylim=[-150, 150],
-    events=None, event_fontdict={'size': 20, 'weight': 'bold'}
+    events={}, event_fontdict={'size': 20, 'weight': 'bold'}
 ):
     """Function to create a stackplot for a given set of conjugate
         magnetometers over a given length of time.
@@ -594,7 +594,7 @@ def magspect(
     is_autoscaled=False,
     ylim=[-150, 150],
     color="white",  # default color for overplotting time domain data
-    events=[],
+    events=None,
     event_fontdict={'size': 20, 'weight': 'bold'}
 ):
     """Function to create spectrogram plots for conjugate magnetometers.
@@ -1111,7 +1111,7 @@ def magall(
     is_detrended=True,
     is_saved=True,
     fstem=None,
-    events=None,
+    events={},
     event_fontdict={'size': 20, 'weight': 'bold'},
     stations=None,
     is_maglist_only=True
