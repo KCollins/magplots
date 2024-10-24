@@ -411,7 +411,8 @@ def magfig(
     fstem=None,
     is_autoscaled=False,
     ylim=[-150, 150],
-    events={}, event_fontdict={'size': 20, 'weight': 'bold'}
+    events=None,
+    event_fontdict={'size': 20, 'weight': 'bold'}
 ):
     """Function to create a stackplot for a given set of conjugate
         magnetometers over a given length of time.
@@ -1111,7 +1112,7 @@ def magall(
     is_detrended=True,
     is_saved=True,
     fstem=None,
-    events={},
+    events=None,
     event_fontdict={'size': 20, 'weight': 'bold'},
     stations=None,
     is_maglist_only=True
@@ -1179,6 +1180,7 @@ def magall(
         maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
     if maglist_a is None:
         maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+    stations = stations or []
 
     for parameter in ['Bx', 'By', 'Bz']:
         logging.info("Computing plots for parameter %s.", parameter)
