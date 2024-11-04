@@ -471,8 +471,8 @@ def magfig(
         magfig(start=start, end=end)
     """
 
-    maglist_a = maglist_a  or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] 
-    maglist_b = maglist_b  or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+    maglist_a = maglist_a or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+    maglist_b = maglist_b or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
     ylim = ylim or [-150, 150]
     event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
 
@@ -666,8 +666,8 @@ def magspect(
         magspect(start=start, end=end)
     """
 
-    maglist_a = maglist_a  or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] 
-    maglist_b = maglist_b  or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+    maglist_a = maglist_a or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+    maglist_b = maglist_b or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
     ylim = ylim or [-150, 150]
     event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
 
@@ -1106,6 +1106,7 @@ def magall(
     is_detrended=True,
     is_saved=True,
     fstem=None,
+    ylim=None,
     events=None,
     event_fontdict=None,
     stations=None,
@@ -1141,6 +1142,10 @@ def magall(
     fstem : str, optional
         String for filename prefix. Empty by default.
 
+    ylim : list, optional
+        y-axis limits for time domain plot, in nanotesla above and below
+        median. Defaults to [-150, 150].
+
     events : list, optional
         List of datetimes for events marked on figure. Empty by default.
 
@@ -1169,8 +1174,8 @@ def magall(
         magall(is_verbose = true)
     """
 
-    maglist_a = maglist_a  or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] 
-    maglist_b = maglist_b  or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+    maglist_a = maglist_a or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+    maglist_b = maglist_b or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
     ylim = ylim or [-150, 150]
     event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
     stations = stations or []
@@ -1183,13 +1188,13 @@ def magall(
         logging.info('Saving time-domain plot.')
         magfig(parameter=parameter, start=start, end=end, maglist_a=maglist_a,
                maglist_b=maglist_b, is_detrended=is_detrended,
-               is_saved=is_saved, fstem=fstem, events=events)
+               is_saved=is_saved, fstem=fstem, ylim=ylim, events=events)
         logging.info('Saving spectrogram plot.')
         magspect(parameter=parameter, start=start, end=end,
                  maglist_a=maglist_a, maglist_b=maglist_b,
                  is_detrended=is_detrended,
                  is_saved=is_saved, fstem=fstem,
-                 # events=events,
+                 ylim=ylim, events=events,
                  event_fontdict=event_fontdict)
         logging.info('Generating wave power plot.')
         wavefig(stations=stations, parameter=parameter, start=start,
