@@ -37,6 +37,15 @@ Changelog = "https://github.com/KCollins/magplots/releases"
 source = "https://github.com/KCollins/magplots"
 download = "https://github.com/KCollins/magplots/releases"
 
+[tool.coverage.run]
+relative_files = true
+include = ["*/magplots/*",
+           "*/magplots/tests/*"]
+
+[tool.coverage.paths]
+ocb_paths = ["magplots/",
+             "*/lib/*/site-packages/magplots"]
+
 [tool.setuptools]
 packages = ["magplots"]
 
