@@ -333,12 +333,8 @@ def magdf(
 
         df = magdf(is_saved = True)
     """
-    if maglist_a is None:
-        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
-        logger.info("Setting Arctic magnetometer list to default values.")
-    if maglist_a is None:
-        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
-        logger.info("Setting Antarctic magnetometer list to default values.")
+    maglist_a = maglist_a or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+    maglist_b = maglist_b or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
 
     # Magnetometer parameter dict so we don't have to type the full string:
     d = {'Bx': 'MAGNETIC_NORTH_-_H',
@@ -475,6 +471,7 @@ def magfig(
     maglist_b = maglist_b or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
     ylim = ylim or [-150, 150]
     event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
+    fstem = fstem or ""
 
     if is_saved:
         fname = 'output/' + fstem + str(start) + '_' + str(parameter) + '.png'
@@ -698,7 +695,6 @@ def magspect(
                      is_pivoted=False,
                      is_uniform=is_uniform,
                      is_saved=is_saved)
-    logging.info(all_data.head(10))
     # assert all_data.shape[1] == 5
 
     for maglist, side, sideidx in zip([maglist_a, maglist_b], ['Arctic', 'Antarctic'], [0, 1]):
@@ -987,11 +983,9 @@ def wavefig(
         wavefig(is_saved = True)
     """
 
-    logger.info("Setting magnetometer lists to default values.")
-    if maglist_a is None:
-        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
-    if maglist_a is None:
-        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+    maglist_a = maglist_a or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']
+    maglist_b = maglist_b or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+    fstem = fstem or ""
 
     if stations is None:
         logging.info("Loading station list from local file stations.csv...")
