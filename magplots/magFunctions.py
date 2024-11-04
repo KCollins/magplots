@@ -596,7 +596,7 @@ def magspect(
     ylim=[-150, 150],
     color="white",  # default color for overplotting time domain data
     events=None,
-    event_fontdict={'size': 20, 'weight': 'bold'}
+    event_fontdict=None
 ):
     """Function to create spectrogram plots for conjugate magnetometers.
 
@@ -670,12 +670,16 @@ def magspect(
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
         magspect(start=start, end=end)
     """
-    if maglist_a is None:
-        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
-        logger.info("Setting Arctic magnetometer lists to default values.")
-    if maglist_a is None:
-        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
-        logger.info("Setting Antarctic magnetometer lists to default values.")
+    # if maglist_a is None:
+    #     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
+    #     logger.info("Setting Arctic magnetometer lists to default values.")
+    # if maglist_a is None:
+    #     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+    #     logger.info("Setting Antarctic magnetometer lists to default values.")
+    maglist_a = maglist_a  or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] 
+    maglist_b = maglist_b  or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+
+    event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
 
     if is_uniform is False:
         logger.warning("Warn: Scaling won't work correctly without uniform sampling.")  # noqa: E501
