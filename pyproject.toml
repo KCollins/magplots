@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "magplots"
 dynamic = ["version"]
+license = {file = "LICENSE"}
 authors = [
   { name="Kristina Collins", email="kvcollins@spacescience.org"},
   ]
 description = "A python library for generating plots from conjugate magnetometers."
 readme = "README.md"
-license = {text = "MIT License"}
 requires-python = ">=3.6"
 dependencies = [
     "matplotlib",
@@ -23,7 +23,13 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Intended Audience :: Developers"
     ]
- 
+
+[project.optional-dependencies]
+test = [
+     "coverage[toml]",
+     "pylint",
+]
+
 [project.urls]
 Homepage = "https://github.com/KCollins/magplots"
 "Bug Tracker" = "https://github.com/KCollins/magplots/issues"
