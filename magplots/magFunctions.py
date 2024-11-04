@@ -410,9 +410,9 @@ def magfig(
     is_saved=False,
     fstem=None,
     is_autoscaled=False,
-    ylim=[-150, 150],
+    ylim=None,
     events=None,
-    event_fontdict={'size': 20, 'weight': 'bold'}
+    event_fontdict=None
 ):
     """Function to create a stackplot for a given set of conjugate
         magnetometers over a given length of time.
@@ -471,15 +471,10 @@ def magfig(
         magfig(start=start, end=end)
     """
 
-    if maglist_a is None:
-        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
-        logger.info("Setting Arctic magnetometer lists to default values.")
-    if maglist_a is None:
-        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
-        logger.info("Setting Antarctic magnetometer lists to default values.")
-    # Now check before calling magdf
-    if maglist_a is None and maglist_b is None:
-        logger.warning("No magnetometer lists provided.")
+    maglist_a = maglist_a  or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] 
+    maglist_b = maglist_b  or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+    ylim = ylim or [-150, 150]
+    event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
 
     if is_saved:
         fname = 'output/' + fstem + str(start) + '_' + str(parameter) + '.png'
@@ -593,7 +588,7 @@ def magspect(
     colormap="viridis",  # matplotlib colormap
     is_overplotted=True,
     is_autoscaled=False,
-    ylim=[-150, 150],
+    ylim=None,
     color="white",  # default color for overplotting time domain data
     events=None,
     event_fontdict=None
@@ -670,15 +665,10 @@ def magspect(
         end = datetime.datetime(2019, 8, 3, 0, 0, 0)
         magspect(start=start, end=end)
     """
-    # if maglist_a is None:
-    #     maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
-    #     logger.info("Setting Arctic magnetometer lists to default values.")
-    # if maglist_a is None:
-    #     maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
-    #     logger.info("Setting Antarctic magnetometer lists to default values.")
+
     maglist_a = maglist_a  or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] 
     maglist_b = maglist_b  or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
-
+    ylim = ylim or [-150, 150]
     event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
 
     if is_uniform is False:
@@ -1117,7 +1107,7 @@ def magall(
     is_saved=True,
     fstem=None,
     events=None,
-    event_fontdict={'size': 20, 'weight': 'bold'},
+    event_fontdict=None,
     stations=None,
     is_maglist_only=True
 ):
@@ -1179,11 +1169,10 @@ def magall(
         magall(is_verbose = true)
     """
 
-    logger.info("Setting magnetometer lists to default values.")
-    if maglist_a is None:
-        maglist_a = ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb']  # Arctic mags
-    if maglist_a is None:
-        maglist_b = ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']  # Antarctic
+    maglist_a = maglist_a  or ['upn', 'umq', 'gdh', 'atu', 'skt', 'ghb'] 
+    maglist_b = maglist_b  or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
+    ylim = ylim or [-150, 150]
+    event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
     stations = stations or []
 
     for parameter in ['Bx', 'By', 'Bz']:
