@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
  
 [project]
 name = "magplots"
-dynamic = ["version"]
+version = "0.1.4"
 license = {file = "LICENSE"}
 authors = [
   { name="Kristina Collins", email="kvcollins@spacescience.org"},
