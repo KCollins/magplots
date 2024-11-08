@@ -507,10 +507,11 @@ def magfig(
 
             if not is_autoscaled:
                 median = np.median(y)
-                logging.info('Adjusting y-axis limits. Median: %s', str(median))
-                ylims = [val+median for val in ylim]
-                logging.info(ylims)
-                axs[idx].set_ylim(ylims)
+                logging.info("Adjusting y-axis limits for the plot of %s data. Median: %s", magname.upper(), str(median))
+                if ~np.isnan(median):
+                    ylims = [val+median for val in ylim]
+                    logging.info("Y axis limits: %s", str(ylims))
+                    axs[idx].set_ylim(ylims)
             axs[idx].set(xlabel='Time', ylabel=magname.upper())
             axs[idx].set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             axs[idx].tick_params(axis='y', labelcolor=color)
@@ -548,11 +549,12 @@ def magfig(
             if ~is_autoscaled & np.isfinite(y).all():
                 # Adjust y-axis limits around mean:
                 median = np.median(y)
-                logging.info("Adjusting y-axis limits. Median: %s", str(median))
-                ylims = [val+median for val in ylim]
-                logging.info(ylims)
-                if ~np.isfinite(ylim).any():
-                    ax2.set_ylim(ylims)
+                logging.info("Adjusting y-axis limits for the plot of %s data. Median: %s", magname.upper(), str(median))
+                if ~np.isnan(median):
+                    ylims = [val+median for val in ylim]
+                    logging.info(ylims)
+                    if ~np.isfinite(ylim).any():
+                        ax2.set_ylim(ylims)
 
             ax2.set_ylabel(magname.upper() + ' — ' + parameter, color=color)
             ax2.tick_params(axis='y', labelcolor=color)
