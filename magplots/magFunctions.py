@@ -735,7 +735,7 @@ def magspect(
                     # Create a logarithmic norm for the colormap
                     vmin = np.abs(zxx).min()
                     vmax = np.abs(zxx).max()
-                    logging.info("vmin: %d, vmax: %d", vmin, vmax)
+                    logging.info("vmin: %s, vmax: %s", str(vmin), str(vmax))
                     if vmin == 0:
                         vmin = .00001
                         logging.info("Adjusting vmin.")
@@ -897,7 +897,7 @@ def wavepwr(station_id,
             fs = 1 / dt
 
             datos = y
-    
+
             # nblock = 1024
             # overlap = 128
             nblock = 60
@@ -911,9 +911,9 @@ def wavepwr(station_id,
             logging.info(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
             logging.info("%s: The estimated power from %d + ' mHz to %d mHz is %d nT/Hz^(1/2)", magname.upper(), f_lower, f_upper, pwr)  # noqa: E501
             return pwr
-        else:
-            logging.info("No data found for %s.", magname.upper())
-            return np.nan
+
+        logging.info("No data found for %s.", magname.upper())
+        return np.nan
     except ValueError as e:
         logger.warning("Error in wavepwr.")
         logger.info(e)
