@@ -903,7 +903,6 @@ def wavepwr(station_id,
             nblock = 60
             overlap = 30
             win = hann(nblock, True)
-    
             # f, pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
             f, pxxf = welch(datos, fs, window=win, noverlap=overlap,
                             return_onesided=True, detrend=False)
