@@ -373,8 +373,8 @@ def magdf(
                            axis=1,
                            errors='ignore'  # only some stations have this
                            )
-    df_pivoted = full_df.pivot(index='UT', columns='Magnetometer',
-                               values=['Bx', 'By', 'Bz'])
+    df_pivoted = full_df.drop_duplicates().pivot(index='UT', columns='Magnetometer',
+             values=['Bx', 'By', 'Bz'])
     if is_pivoted:
         logging.info("Pivoting to index by time.")
         full_df = df_pivoted
@@ -878,7 +878,7 @@ def wavepwr(station_id,
         start=start,
         end=end,
         maglist_a=[magname],  # does not need to be an Arctic magnetometer
-        maglist_b=None,
+        maglist_b=[],
         is_detrended=is_detrended,
         is_saved=is_saved
     )
@@ -892,25 +892,28 @@ def wavepwr(station_id,
         y = reject_outliers(y)  # Remove power cycling artifacts on, e.g., PG2.
         y = fill_nan(y)
         y = y - np.nanmean(y)  # Detrend
+        if len(x)>1:
+            dt = (x.iloc[1] - x.iloc[0]).seconds
+            fs = 1 / dt
 
-        dt = (x.iloc[1] - x.iloc[0]).seconds
-        fs = 1 / dt
-
-        datos = y
-
-        # nblock = 1024
-        # overlap = 128
-        nblock = 60
-        overlap = 30
-        win = hann(nblock, True)
-
-        # f, pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
-        f, pxxf = welch(datos, fs, window=win, noverlap=overlap,
-                        return_onesided=True, detrend=False)
-        pwr = pxxf[3]
-        logging.info(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
-        logging.info("%s: The estimated power from %d + ' mHz to %d mHz is %d nT/Hz^(1/2)", magname.upper(), f_lower, f_upper, pwr)  # noqa: E501
-        return pwr
+            datos = y
+    
+            # nblock = 1024
+            # overlap = 128
+            nblock = 60
+            overlap = 30
+            win = hann(nblock, True)
+    
+            # f, pxxf = welch(datos, fs, window=win, noverlap=overlap, nfft=nblock, return_onesided=True, detrend=False)
+            f, pxxf = welch(datos, fs, window=win, noverlap=overlap,
+                            return_onesided=True, detrend=False)
+            pwr = pxxf[3]
+            logging.info(pxxf[((f >= f_lower/1000) & (f_upper <= 3/1000))])
+            logging.info("%s: The estimated power from %d + ' mHz to %d mHz is %d nT/Hz^(1/2)", magname.upper(), f_lower, f_upper, pwr)  # noqa: E501
+            return pwr
+        else:
+            logging.info("No data found for %s.", magname.upper())
+            return np.nan
     except ValueError as e:
         logger.warning("Error in wavepwr.")
         logger.info(e)
@@ -995,14 +998,12 @@ def wavefig(
 
     if is_maglist_only:
         logging.info("Cull to stations listed in maglist_a and maglist_b.")
-        stations = stations[
-            stations.IAGA.isin([item.upper() for item in maglist_a + maglist_b])
-        ]  # Plot only the polar stations
-        logging.info(stations.IAGA)
+        logging.info(type(stations))
+        stations = stations[stations.IAGA.isin([item.upper() for item in maglist_a + maglist_b])]
 
     stations["WAVEPWR"] = stations.apply(
         lambda row: wavepwr(
-            row["IAGA"],
+            row["IAGA"].lower(),
             parameter=parameter,
             start=start,
             end=end,
@@ -1082,7 +1083,7 @@ def wavefig(
 
     if is_saved:
         # fname = f"""output/{fstem}WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"""
-        fname = "output/" + fstem +f"WavePower_{start}_/to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
+        fname = "output/" + fstem +f"WavePower_{start}_to_{end}_{f_lower}mHz to {f_upper}mHz_{parameter}.png"
         fname = fname.replace(":", "")  # Remove colons from timestamps
         logging.info("Saving figure: %s", fname)
         plt.savefig(fname)
@@ -1174,7 +1175,6 @@ def magall(
     maglist_b = maglist_b or ['pg0', 'pg1', 'pg2', 'pg3', 'pg4', 'pg5']
     ylim = ylim or [-150, 150]
     event_fontdict = event_fontdict or {'size': 20, 'weight': 'bold'}
-    stations = stations or []
 
     for parameter in ['Bx', 'By', 'Bz']:
         logging.info("Computing plots for parameter %s.", parameter)
