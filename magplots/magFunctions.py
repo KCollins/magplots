@@ -736,9 +736,12 @@ def magspect(
                     vmin = np.abs(zxx).min()
                     vmax = np.abs(zxx).max()
                     logging.info("vmin: %s, vmax: %s", str(vmin), str(vmax))
-                    if vmin == 0:
+                    if vmin == 0 or np.isnan(vmin):
                         vmin = .00001
                         logging.info("Adjusting vmin.")
+                    if np.isnan(vmax):
+                        logging.info("NaN value found in vmax; adjusting to fixed value.")
+                        vmax = 1000
                     norm = colors.LogNorm(vmin=vmin, vmax=vmax)
                     # Plot the spectrogram with the logarithmic norm
                     cmap = axs[idx, sideidx].pcolormesh(dt_list, f * 1000.,
