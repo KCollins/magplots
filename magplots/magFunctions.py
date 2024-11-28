@@ -501,7 +501,7 @@ def magfig(
             data = all_data[all_data['Magnetometer'] == magname.upper()]
             x = data['UT']
             y = data[parameter]
-            color = 'tab:blue'
+            color = 'tab:red'
             y = reject_outliers(y)  # Remove power cycling artifacts on PG2.
             axs[idx].plot(x, y, color=color)
 
@@ -542,7 +542,7 @@ def magfig(
             x = data['UT']
             y = data[parameter]
 
-            color = 'tab:red'
+            color = 'tab:blue'
             y = reject_outliers(y)  # Remove power cycling artifacts (PG2)
             ax2.plot(x, -y, color=color)
 
