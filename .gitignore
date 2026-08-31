@@ -1,3 +1,4 @@
 output/
 __pycache__/
 tgopw.txt
+notebooks/vt_data/pg*
